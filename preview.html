@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trade With Quinn — Trading Playbook</title>
+  <style>
+    :root{
+      --bg:#030604;
+      --text:#e7eee9;
+      --muted:#9ba7a0;
+      --green:#62ff9e;
+      --line:rgba(98,255,158,0.26);
+      --line-strong:rgba(98,255,158,0.48);
+      --shadow:0 0 0 1px rgba(98,255,158,0.35), 0 0 28px rgba(0,255,140,0.08);
+      --radius:26px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(0,255,140,0.10), transparent 30%),
+        linear-gradient(rgba(0,255,140,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,140,0.04) 1px, transparent 1px),
+        var(--bg);
+      background-size: auto, 36px 36px, 36px 36px, auto;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(1280px, calc(100% - 32px)); margin: 0 auto; }
+    .topbar {
+      position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px);
+      background: rgba(3,6,4,0.86); border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner {
+      display: flex; gap: 24px; justify-content: space-between; align-items: center;
+      padding: 18px 0; flex-wrap: wrap;
+    }
+    .eyebrow {
+      color: var(--green); text-transform: uppercase; letter-spacing: 0.35em;
+      font-size: 12px; margin: 0 0 10px;
+    }
+    .title {
+      margin: 0; font-size: clamp(34px, 6vw, 68px); line-height: 0.95;
+      text-transform: uppercase; color: #baffd4; font-weight: 900;
+    }
+    .subtext { margin: 12px 0 0; color: var(--muted); max-width: 780px; line-height: 1.7; }
+    .nav { display: flex; gap: 10px; flex-wrap: wrap; }
+    .nav a {
+      border: 1px solid var(--line); background: rgba(10,15,11,0.92); color: #c7ffd8;
+      padding: 12px 16px; border-radius: 18px; text-transform: uppercase;
+      letter-spacing: 0.08em; font-size: 13px; font-weight: 700;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .nav a:hover {
+      transform: translateY(-2px); border-color: var(--line-strong); background: rgba(98,255,158,0.08);
+    }
+    .hero { display: grid; grid-template-columns: 1.25fr 0.85fr; gap: 24px; padding: 36px 0 18px; }
+    .card {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: rgba(10,15,11,0.90); box-shadow: var(--shadow);
+    }
+    .hero-main, .hero-side, .playbook, .gallery, .members, .journal { padding: 28px; }
+    .hero-main h2 {
+      margin: 8px 0 0; font-size: clamp(34px, 5vw, 72px); line-height: 0.95;
+      text-transform: uppercase; color: #baffd4;
+    }
+    .hero-main p { margin-top: 18px; color: var(--muted); line-height: 1.85; max-width: 760px; }
+    .button-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+    .btn {
+      display: inline-block; padding: 14px 18px; border-radius: 18px; text-transform: uppercase;
+      letter-spacing: 0.08em; font-size: 13px; font-weight: 900; transition: transform .18s ease;
+    }
+    .btn:hover { transform: scale(1.02); }
+    .btn-primary { background: var(--green); color: #021208; }
+    .btn-secondary { border: 1px solid var(--line); color: #c7ffd8; background: rgba(98,255,158,0.06); }
+    .mini-card {
+      padding: 22px; border: 1px solid var(--line); border-radius: 24px;
+      background: linear-gradient(180deg, rgba(10,15,11,0.95), rgba(13,20,15,0.95)); box-shadow: var(--shadow);
+    }
+    .mini-card + .mini-card { margin-top: 18px; }
+    .mini-card ul { margin: 0; padding-left: 18px; color: var(--text); line-height: 1.85; }
+    .swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .swatch {
+      border-radius: 18px; border: 1px solid var(--line); padding: 18px 12px; text-align: center;
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted);
+    }
+    .swatch.black { background: #010302; }
+    .swatch.green { background: rgba(98,255,158,0.15); color: #baffd4; }
+    .swatch.gray { background: #101612; }
+    section.block { padding: 18px 0; }
+    .playbook { margin-top: 18px; }
+    .play-header {
+      display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .play-meta {
+      color: var(--green); text-transform: uppercase; letter-spacing: 0.35em;
+      font-size: 13px; margin: 0 0 10px;
+    }
+    .play-title {
+      margin: 0; font-size: clamp(32px, 5vw, 64px); text-transform: uppercase;
+      color: #baffd4; line-height: 0.95; font-weight: 900;
+    }
+    .play-subtitle {
+      margin: 10px 0 0; color: #f0fff5; font-size: 22px; text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .play-overview { margin-top: 18px; max-width: 900px; color: var(--muted); line-height: 1.8; }
+    .backtop { color: var(--muted); text-transform: uppercase; letter-spacing: 0.2em; font-size: 12px; }
+    .section-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .section-card {
+      border: 1px solid var(--line); border-radius: 22px; background: rgba(0,0,0,0.45);
+      padding: 20px; transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    }
+    .section-card:hover {
+      transform: translateY(-4px); border-color: var(--line-strong); background: rgba(0,0,0,0.62);
+    }
+    .section-card-head { display: flex; justify-content: space-between; align-items: start; gap: 10px; margin-bottom: 12px; }
+    .section-card h3, .journal h3, .chart-card h3, .member-card h3 {
+      margin: 0; text-transform: uppercase; color: #baffd4; font-size: 20px; font-weight: 900; line-height: 1.2;
+    }
+    .highlight { color: var(--green); font-size: 32px; font-weight: 900; line-height: 1; white-space: nowrap; }
+    .bullet-list, .check-grid { margin: 0; padding: 0; list-style: none; }
+    .bullet-list li {
+      display: flex; gap: 12px; color: var(--text); line-height: 1.8; margin-top: 10px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-top: 11px; flex: 0 0 auto; }
+    .check-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+    .check-item {
+      border: 1px solid rgba(98,255,158,0.18); background: rgba(13,20,15,0.82);
+      border-radius: 16px; padding: 12px 14px; font-size: 14px; line-height: 1.5;
+    }
+    .checkmark { color: var(--green); font-weight: 900; margin-right: 8px; }
+    .gallery h2, .members h2, .journal h2 {
+      margin: 10px 0 0; font-size: clamp(28px, 4vw, 46px); text-transform: uppercase; color: #baffd4;
+    }
+    .gallery p, .members p, .journal p { color: var(--muted); line-height: 1.8; max-width: 920px; }
+    .chart-grid, .member-grid, .journal-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px;
+    }
+    .journal-grid.two { grid-template-columns: repeat(2, 1fr); }
+    .chart-card, .member-card, .journal-card {
+      border: 1px solid var(--line); border-radius: 24px; padding: 18px; background: rgba(0,0,0,0.45);
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    .chart-card:hover, .member-card:hover, .journal-card:hover {
+      transform: translateY(-4px); border-color: var(--line-strong);
+    }
+    .chart-placeholder, .upload-placeholder {
+      aspect-ratio: 16 / 10; border-radius: 18px; border: 1px dashed var(--line-strong);
+      background: rgba(13,20,15,0.82); display: flex; align-items: center; justify-content: center;
+      text-align: center; text-transform: uppercase; letter-spacing: 0.2em; color: #6b7a72; font-size: 12px; padding: 14px;
+    }
+    .field-stack { display: grid; gap: 10px; margin-top: 16px; }
+    .field {
+      border: 1px solid rgba(98,255,158,0.18); background: rgba(13,20,15,0.82);
+      border-radius: 16px; padding: 12px 14px; font-size: 14px; color: var(--text);
+    }
+    footer {
+      padding: 24px 0 50px; color: #75837b; text-align: center; font-size: 13px;
+      text-transform: uppercase; letter-spacing: 0.15em;
+    }
+    @media (max-width: 1100px) {
+      .hero, .section-grid, .chart-grid, .member-grid { grid-template-columns: 1fr 1fr; }
+      .journal-grid.two { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .hero, .section-grid, .chart-grid, .member-grid, .check-grid, .journal-grid { grid-template-columns: 1fr; }
+      .hero-main, .hero-side, .playbook, .gallery, .members, .journal { padding: 22px; }
+      .container { width: min(100% - 20px, 1280px); }
+    }
+  </style>
+</head>
+<body id="top">
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div>
+        <p class="eyebrow">Trade With Quinn</p>
+        <h1 class="title">Trading Playbook</h1>
+        <p class="subtext">Dark-theme strategy library for your models, rules, and future chart examples.</p>
+      </div>
+      <nav class="nav">
+        <a href="#sweep-and-reap">Sweep and Reap</a>
+        <a href="#matrix">Matrix</a>
+        <a href="#journal">Journal</a>
+        <a href="#chart-gallery">Chart Gallery</a>
+        <a href="#member-area">Members Area</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero block">
+      <div class="card hero-main">
+        <p class="eyebrow">Core Identity</p>
+        <h2>System First.<br>Emotion Last.</h2>
+        <p>This site is designed as the digital home for your trading playbook. Every new play can follow the same structure, same branding, and same clean presentation style.</p>
+        <div class="button-row">
+          <a class="btn btn-primary" href="#sweep-and-reap">Open Playbook</a>
+          <a class="btn btn-secondary" href="#journal">Open Journal</a>
+        </div>
+      </div>
+      <div class="hero-side">
+        <div class="mini-card">
+          <p class="eyebrow" style="letter-spacing:.28em;margin-bottom:12px;">Included Now</p>
+          <ul>
+            <li>Navigation tabs between plays</li>
+            <li>Hover animations and responsive cards</li>
+            <li>Chart example placeholders</li>
+            <li>Journal section for daily review</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <p class="eyebrow" style="letter-spacing:.28em;margin-bottom:12px;">Brand Style</p>
+          <div class="swatches">
+            <div class="swatch black">Black</div>
+            <div class="swatch green">Matrix Green</div>
+            <div class="swatch gray">Panel Grey</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sweep-and-reap" class="block">
+      <article class="card playbook">
+        <div class="play-header">
+          <div>
+            <p class="play-meta">Play 1</p>
+            <h2 class="play-title">Sweep and Reap</h2>
+            <p class="play-subtitle">Asia Sweep Model</p>
+            <p class="play-overview">A discretionary setup with mechanical risk management. Designed to capture momentum after liquidity is taken during London.</p>
+          </div>
+          <a class="backtop" href="#top">Back to top</a>
+        </div>
+
+        <div class="section-grid">
+          <div class="section-card"><div class="section-card-head"><h3>Session Rules</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>London Session</span></li><li><span class="dot"></span><span>3:00 – 5:30 NY time</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Core Setup</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Asia High / Low sweep</span></li><li><span class="dot"></span><span>Must sweep Asia High or Asia Low</span></li><li><span class="dot"></span><span>Clear intent after the sweep</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Entry Model</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Wait for one of the following confirmation signals</span></li><li><span class="dot"></span><span>IFVG (Imbalance)</span></li><li><span class="dot"></span><span>CISD (Displacement)</span></li><li><span class="dot"></span><span>Entry only after confirmation — no guessing</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Context Rule</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Best setups occur when London opens near Asia High or Low</span></li><li><span class="dot"></span><span>Then immediately sweeps liquidity</span></li><li><span class="dot"></span><span>If price is far from Asia range, setup quality is lower</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Risk Management</h3><span class="highlight">2R</span></div><ul class="bullet-list"><li><span class="dot"></span><span>Target: 2R only</span></li><li><span class="dot"></span><span>Never extend target</span></li><li><span class="dot"></span><span>Never get greedy</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Trade Management</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Move stop to BE only after +1.5R</span></li><li><span class="dot"></span><span>No early BE (avoid getting wicked out)</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Markets</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>ES</span></li><li><span class="dot"></span><span>NQ</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Hard Rules</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>No sweep = no trade</span></li><li><span class="dot"></span><span>No confirmation = no entry</span></li><li><span class="dot"></span><span>No rule bending</span></li><li><span class="dot"></span><span>Don’t chase extended moves</span></li><li><span class="dot"></span><span>Stick to the plan</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Setup Checklist</h3></div><div class="check-grid"><div class="check-item"><span class="checkmark">✓</span>London session active</div><div class="check-item"><span class="checkmark">✓</span>Asia High/Low swept</div><div class="check-item"><span class="checkmark">✓</span>Clean reaction after sweep</div><div class="check-item"><span class="checkmark">✓</span>IFVG or CISD confirmation</div><div class="check-item"><span class="checkmark">✓</span>Entry aligns with direction</div><div class="check-item"><span class="checkmark">✓</span>2R target set</div><div class="check-item"><span class="checkmark">✓</span>Risk defined</div></div></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="matrix" class="block">
+      <article class="card playbook">
+        <div class="play-header">
+          <div>
+            <p class="play-meta">Play 2</p>
+            <h2 class="play-title">Matrix</h2>
+            <p class="play-subtitle">SMT Model</p>
+            <p class="play-overview">A discretionary setup with mechanical risk management built around SMT divergence and strong/weak asset execution.</p>
+          </div>
+          <a class="backtop" href="#top">Back to top</a>
+        </div>
+
+        <div class="section-grid">
+          <div class="section-card"><div class="section-card-head"><h3>Session Rules</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Trade window</span></li><li><span class="dot"></span><span>08:00 – 11:00 NY time</span></li><li><span class="dot"></span><span>Best setups around 09:30 open</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Core Setup</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Identify relative strength</span></li><li><span class="dot"></span><span>A divergence at highs / lows between NQ and ES</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Entry Model</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Wait for CISD confirmation after SMT</span></li><li><span class="dot"></span><span>Should happen within roughly 5 candles</span></li><li><span class="dot"></span><span>If it drags, the setup weakens</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Execution Rule</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Execute on the stronger / weaker asset</span></li><li><span class="dot"></span><span>Short setup: execute on the asset that makes a lower high</span></li><li><span class="dot"></span><span>Long setup: execute on the asset that makes a higher low</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Trade Management</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Move stop to BE only after +1R</span></li><li><span class="dot"></span><span>Exit on counter SMT signal</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Risk Management</h3><span class="highlight">1.5R</span></div><ul class="bullet-list"><li><span class="dot"></span><span>Stop loss at SMT high / low</span></li><li><span class="dot"></span><span>Target: 1.5R only</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Context Rule</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>Don’t force entries, take clear setups</span></li><li><span class="dot"></span><span>Take as a top / bottom entry or first pullback</span></li><li><span class="dot"></span><span>Not as a 2nd or 3rd pullback</span></li><li><span class="dot"></span><span>Avoid very high impact news, FOMC, NFP etc.</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Markets</h3></div><ul class="bullet-list"><li><span class="dot"></span><span>ES</span></li><li><span class="dot"></span><span>NQ</span></li></ul></div>
+          <div class="section-card"><div class="section-card-head"><h3>Setup Checklist</h3></div><div class="check-grid"><div class="check-item"><span class="checkmark">✓</span>SMT divergence present</div><div class="check-item"><span class="checkmark">✓</span>At key high/low</div><div class="check-item"><span class="checkmark">✓</span>CISD confirms within ~5 bars</div><div class="check-item"><span class="checkmark">✓</span>Entry is early (not extended)</div><div class="check-item"><span class="checkmark">✓</span>Not near major news</div><div class="check-item"><span class="checkmark">✓</span>Stop at SMT level</div><div class="check-item"><span class="checkmark">✓</span>1.5R target set</div><div class="check-item"><span class="checkmark">✓</span>Go BE after +1R</div></div></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="journal" class="block">
+      <article class="card journal">
+        <p class="eyebrow">Trading Journal</p>
+        <h2>Daily Trade Uploads</h2>
+        <p>This section is designed for storing screenshots of trades taken each day. You can keep entries grouped by play, add notes, and build a visual archive of your execution over time.</p>
+
+        <div class="journal-grid two">
+          <div class="journal-card">
+            <h3>Sweep and Reap Journal</h3>
+            <div class="field-stack">
+              <div class="field">Date</div>
+              <div class="field">Market</div>
+              <div class="field">Bias / setup quality</div>
+              <div class="field">Result</div>
+              <div class="upload-placeholder">Screenshot Upload Area</div>
+              <div class="field">Notes</div>
+            </div>
+          </div>
+          <div class="journal-card">
+            <h3>Matrix Journal</h3>
+            <div class="field-stack">
+              <div class="field">Date</div>
+              <div class="field">Market</div>
+              <div class="field">SMT context</div>
+              <div class="field">Result</div>
+              <div class="upload-placeholder">Screenshot Upload Area</div>
+              <div class="field">Notes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="journal-grid" style="margin-top:18px;">
+          <div class="journal-card"><h3>Daily Gallery Slot 1</h3><div class="upload-placeholder">Upload Slot</div></div>
+          <div class="journal-card"><h3>Daily Gallery Slot 2</h3><div class="upload-placeholder">Upload Slot</div></div>
+          <div class="journal-card"><h3>Daily Gallery Slot 3</h3><div class="upload-placeholder">Upload Slot</div></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="chart-gallery" class="block">
+      <article class="card gallery">
+        <p class="eyebrow">Chart Gallery</p>
+        <h2>Example Charts Section</h2>
+        <p>This area is ready for screenshots of real setups, annotated entries, and before/after trade examples.</p>
+        <div class="chart-grid">
+          <div class="chart-card"><div class="chart-placeholder">Chart Image Placeholder</div><h3>Sweep and Reap Example 1</h3><p class="subtext" style="margin-top:0;">Add a marked-up chart screenshot here later.</p></div>
+          <div class="chart-card"><div class="chart-placeholder">Chart Image Placeholder</div><h3>Matrix Example 1</h3><p class="subtext" style="margin-top:0;">Add a marked-up chart screenshot here later.</p></div>
+          <div class="chart-card"><div class="chart-placeholder">Chart Image Placeholder</div><h3>Future Play Example</h3><p class="subtext" style="margin-top:0;">Add a marked-up chart screenshot here later.</p></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="member-area" class="block">
+      <article class="card members">
+        <p class="eyebrow">Members Area</p>
+        <h2>Private Portal Placeholder</h2>
+        <p>This section can later become a protected members area with locked playbooks, video breakdowns, downloadable PDFs, or trade recap content.</p>
+        <div class="member-grid">
+          <div class="member-card"><h3>Login UI</h3><p class="subtext" style="margin-top:0;">Email + password or magic link.</p></div>
+          <div class="member-card"><h3>Premium Content</h3><p class="subtext" style="margin-top:0;">Locked plays, videos, charts, notes.</p></div>
+          <div class="member-card"><h3>Hosting Ready</h3><p class="subtext" style="margin-top:0;">Can be deployed later to a real domain.</p></div>
+        </div>
+      </article>
+    </section>
+
+    <footer>Trade With Quinn — Trading Playbook</footer>
+  </main>
+</body>
+</html>
