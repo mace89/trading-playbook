@@ -111,7 +111,10 @@
         <option>Sweep and Reap</option>
         <option>Matrix</option>
       </select>
-
+<select id="market">
+  <option>ES</option>
+  <option>NQ</option>
+</select>
       <select id="status">
         <option>Win</option>
         <option>Loss</option>
@@ -161,11 +164,13 @@ form.addEventListener("submit", async (e)=>{
   statusMsg.innerText = "Saving...";
 
   const trade = {
-    trade_date: document.getElementById("date").value,
-    play: document.getElementById("play").value,
-    status: document.getElementById("status").value,
-    result_r: Number(document.getElementById("r").value),
-    image_url: document.getElementById("link").value
+   trade_date: document.getElementById("date").value,
+  play: document.getElementById("play").value,
+  market: document.getElementById("market").value,
+  direction: "Long",
+  status: document.getElementById("status").value,
+  result_r: Number(document.getElementById("r").value),
+  image_url: document.getElementById("link").value
   };
 
   const { error } = await client.from("trades").insert([trade]);
