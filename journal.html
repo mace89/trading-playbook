@@ -6,85 +6,19 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    body {
-      margin:0;
-      font-family: Arial;
-      background:#030604;
-      color:#62ff9e;
-    }
-
-    .nav {
-      padding:20px;
-      border-bottom:1px solid rgba(98,255,158,0.2);
-      text-align:center;
-    }
-
-    .nav a {
-      margin:0 15px;
-      text-decoration:none;
-      color:#62ff9e;
-      font-weight:bold;
-    }
-
-    h1 {
-      text-align:center;
-      margin-top:30px;
-    }
-
-    .container {
-      max-width:1000px;
-      margin:30px auto;
-      padding:20px;
-    }
-
-    .card {
-      border:1px solid rgba(98,255,158,0.3);
-      padding:20px;
-      margin-bottom:25px;
-    }
-
-    input, select {
-      width:100%;
-      padding:10px;
-      margin:5px 0;
-      background:#000;
-      border:1px solid rgba(98,255,158,0.3);
-      color:#62ff9e;
-    }
-
-    button {
-      margin-top:10px;
-      padding:12px;
-      width:100%;
-      background:#62ff9e;
-      border:none;
-      color:#030604;
-      font-weight:bold;
-      cursor:pointer;
-    }
-
-    .stats {
-      display:flex;
-      justify-content:space-between;
-      flex-wrap:wrap;
-    }
-
-    .stat {
-      width:30%;
-      margin-bottom:15px;
-    }
-
-    ul {
-      padding-left:20px;
-    }
-
-    li {
-      margin-bottom:5px;
-    }
-
-    a {
-      color:#62ff9e;
-    }
+    body { margin:0; font-family:Arial; background:#030604; color:#62ff9e; }
+    .nav { padding:20px; border-bottom:1px solid rgba(98,255,158,0.2); text-align:center; }
+    .nav a { margin:0 15px; text-decoration:none; color:#62ff9e; font-weight:bold; }
+    h1 { text-align:center; margin-top:30px; }
+    .container { max-width:1000px; margin:30px auto; padding:20px; }
+    .card { border:1px solid rgba(98,255,158,0.3); padding:20px; margin-bottom:25px; }
+    input, select { width:100%; padding:10px; margin:5px 0; background:#000; border:1px solid rgba(98,255,158,0.3); color:#62ff9e; }
+    button { margin-top:10px; padding:12px; width:100%; background:#62ff9e; border:none; color:#030604; font-weight:bold; cursor:pointer; }
+    .stats { display:flex; justify-content:space-between; flex-wrap:wrap; }
+    .stat { width:30%; margin-bottom:15px; }
+    ul { padding-left:20px; }
+    li { margin-bottom:5px; }
+    a { color:#62ff9e; }
   </style>
 </head>
 
@@ -132,6 +66,22 @@
   </div>
 
   <div class="card">
+    <h2>Filters</h2>
+
+    <select id="filterPlay">
+      <option value="All">All Plays</option>
+      <option value="Sweep and Reap">Sweep and Reap</option>
+      <option value="Matrix">Matrix</option>
+    </select>
+
+    <select id="filterMarket">
+      <option value="All">All Markets</option>
+      <option value="ES">ES</option>
+      <option value="NQ">NQ</option>
+    </select>
+  </div>
+
+  <div class="card">
     <h2>Stats</h2>
 
     <div class="stats">
@@ -161,8 +111,11 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const form = document.getElementById("form");
 const statusMsg = document.getElementById("statusMsg");
+const filterPlay = document.getElementById("filterPlay");
+const filterMarket = document.getElementById("filterMarket");
 
 let equityChart = null;
+let allTrades = [];
 
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
@@ -191,6 +144,9 @@ form.addEventListener("submit", async (e)=>{
   load();
 });
 
+filterPlay.addEventListener("change", applyFilters);
+filterMarket.addEventListener("change", applyFilters);
+
 async function load(){
   const { data, error } = await client
     .from("trades")
@@ -202,15 +158,41 @@ async function load(){
     return;
   }
 
+  allTrades = data || [];
+  applyFilters();
+}
+
+function applyFilters(){
+  let filtered = [...allTrades];
+
+  const selectedPlay = filterPlay.value;
+  const selectedMarket = filterMarket.value;
+
+  if(selectedPlay !== "All"){
+    filtered = filtered.filter(t => t.play === selectedPlay);
+  }
+
+  if(selectedMarket !== "All"){
+    filtered = filtered.filter(t => t.market === selectedMarket);
+  }
+
+  updateStats(filtered);
+  updateList(filtered);
+  drawChart(filtered);
+}
+
+function updateStats(data){
   let total = data.length;
-  let wins = data.filter(t => t.result_r > 0);
+  let wins = data.filter(t => Number(t.result_r) > 0);
   let totalR = data.reduce((sum,t)=>sum + Number(t.result_r || 0),0);
   let winrate = total ? ((wins.length / total) * 100).toFixed(1) : 0;
 
   document.getElementById("trades").innerText = total;
   document.getElementById("winrate").innerText = winrate + "%";
   document.getElementById("totalR").innerText = totalR.toFixed(2);
+}
 
+function updateList(data){
   const list = document.getElementById("list");
   list.innerHTML = "";
 
@@ -222,8 +204,6 @@ async function load(){
     `;
     list.appendChild(li);
   });
-
-  drawChart(data);
 }
 
 function drawChart(trades){
@@ -260,28 +240,16 @@ function drawChart(trades){
     options: {
       responsive: true,
       plugins: {
-        legend: {
-          labels: {
-            color: "#62ff9e"
-          }
-        }
+        legend: { labels: { color: "#62ff9e" } }
       },
       scales: {
         x: {
-          ticks: {
-            color: "#62ff9e"
-          },
-          grid: {
-            color: "rgba(98,255,158,0.1)"
-          }
+          ticks: { color: "#62ff9e" },
+          grid: { color: "rgba(98,255,158,0.1)" }
         },
         y: {
-          ticks: {
-            color: "#62ff9e"
-          },
-          grid: {
-            color: "rgba(98,255,158,0.1)"
-          }
+          ticks: { color: "#62ff9e" },
+          grid: { color: "rgba(98,255,158,0.1)" }
         }
       }
     }
