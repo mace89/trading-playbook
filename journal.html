@@ -3,6 +3,7 @@
 <head>
   <title>Journal</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
@@ -84,7 +85,6 @@
     a {
       color:#62ff9e;
     }
-
   </style>
 </head>
 
@@ -100,7 +100,6 @@
 
 <div class="container">
 
-  <!-- FORM -->
   <div class="card">
     <h2>Add Trade</h2>
 
@@ -111,10 +110,12 @@
         <option>Sweep and Reap</option>
         <option>Matrix</option>
       </select>
-<select id="market">
-  <option>ES</option>
-  <option>NQ</option>
-</select>
+
+      <select id="market">
+        <option>ES</option>
+        <option>NQ</option>
+      </select>
+
       <select id="status">
         <option>Win</option>
         <option>Loss</option>
@@ -130,7 +131,6 @@
     <p id="statusMsg">Ready</p>
   </div>
 
-  <!-- STATS -->
   <div class="card">
     <h2>Stats</h2>
 
@@ -141,7 +141,11 @@
     </div>
   </div>
 
-  <!-- TRADES -->
+  <div class="card">
+    <h2>Equity Curve</h2>
+    <canvas id="equityChart"></canvas>
+  </div>
+
   <div class="card">
     <h2>Trades</h2>
     <ul id="list"></ul>
@@ -158,19 +162,21 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const form = document.getElementById("form");
 const statusMsg = document.getElementById("statusMsg");
 
+let equityChart = null;
+
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
 
   statusMsg.innerText = "Saving...";
 
   const trade = {
-   trade_date: document.getElementById("date").value,
-  play: document.getElementById("play").value,
-  market: document.getElementById("market").value,
-  direction: "Long",
-  status: document.getElementById("status").value,
-  result_r: Number(document.getElementById("r").value),
-  image_url: document.getElementById("link").value
+    trade_date: document.getElementById("date").value,
+    play: document.getElementById("play").value,
+    market: document.getElementById("market").value,
+    direction: "Long",
+    status: document.getElementById("status").value,
+    result_r: Number(document.getElementById("r").value),
+    image_url: document.getElementById("link").value
   };
 
   const { error } = await client.from("trades").insert([trade]);
@@ -186,12 +192,19 @@ form.addEventListener("submit", async (e)=>{
 });
 
 async function load(){
-  const { data } = await client.from("trades").select("*");
+  const { data, error } = await client
+    .from("trades")
+    .select("*")
+    .order("trade_date", { ascending: true });
+
+  if(error){
+    statusMsg.innerText = error.message;
+    return;
+  }
 
   let total = data.length;
   let wins = data.filter(t => t.result_r > 0);
-  let totalR = data.reduce((sum,t)=>sum + (t.result_r || 0),0);
-
+  let totalR = data.reduce((sum,t)=>sum + Number(t.result_r || 0),0);
   let winrate = total ? ((wins.length / total) * 100).toFixed(1) : 0;
 
   document.getElementById("trades").innerText = total;
@@ -204,10 +217,74 @@ async function load(){
   data.forEach(t=>{
     const li = document.createElement("li");
     li.innerHTML = `
-      ${t.play} | ${t.result_r}R | 
+      ${t.trade_date} | ${t.play} | ${t.market} | ${t.result_r}R |
       <a href="${t.image_url}" target="_blank">Chart</a>
     `;
     list.appendChild(li);
+  });
+
+  drawChart(data);
+}
+
+function drawChart(trades){
+  const sorted = [...trades].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
+
+  let equity = 0;
+  const labels = [];
+  const data = [];
+
+  sorted.forEach(t=>{
+    equity += Number(t.result_r || 0);
+    labels.push(t.trade_date);
+    data.push(equity);
+  });
+
+  const ctx = document.getElementById("equityChart");
+
+  if(equityChart){
+    equityChart.destroy();
+  }
+
+  equityChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Equity (R)",
+        data: data,
+        borderColor: "#62ff9e",
+        backgroundColor: "rgba(98,255,158,0.15)",
+        tension: 0.25
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: {
+            color: "#62ff9e"
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "#62ff9e"
+          },
+          grid: {
+            color: "rgba(98,255,158,0.1)"
+          }
+        },
+        y: {
+          ticks: {
+            color: "#62ff9e"
+          },
+          grid: {
+            color: "rgba(98,255,158,0.1)"
+          }
+        }
+      }
+    }
   });
 }
 
