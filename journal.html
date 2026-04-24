@@ -1,186 +1,613 @@
-<!-- FULL SCRIPT START -->
 <!DOCTYPE html>
 <html>
 <head>
-<title>Journal</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Journal</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-body{margin:0;font-family:Arial;background:#030604;color:#62ff9e;}
-.nav{padding:20px;border-bottom:1px solid rgba(98,255,158,0.2);text-align:center;}
-.nav a{margin:0 15px;text-decoration:none;color:#62ff9e;font-weight:bold;}
-.container{max-width:1000px;margin:30px auto;padding:20px;}
-.card{border:1px solid rgba(98,255,158,0.3);padding:20px;margin-bottom:25px;}
-input,select{width:100%;padding:10px;margin:5px 0;background:#000;border:1px solid rgba(98,255,158,0.3);color:#62ff9e;}
-button{margin-top:10px;padding:12px;width:100%;background:#62ff9e;border:none;color:#030604;font-weight:bold;cursor:pointer;}
-.stats{display:flex;flex-wrap:wrap;gap:10px;}
-.stat{width:30%;}
-.danger{background:red;color:white;}
-#galleryOverlay{display:none;position:fixed;inset:0;background:black;padding:20px;z-index:9999;}
-.gallery-img{max-width:100%;max-height:70vh;}
-</style>
+  <style>
+    body { margin:0; font-family:Arial; background:#030604; color:#62ff9e; }
+    .nav { padding:20px; border-bottom:1px solid rgba(98,255,158,0.2); text-align:center; }
+    .nav a { margin:0 15px; text-decoration:none; color:#62ff9e; font-weight:bold; }
+    h1 { text-align:center; margin-top:30px; }
+    .container { max-width:1000px; margin:30px auto; padding:20px; }
+    .card { border:1px solid rgba(98,255,158,0.3); padding:20px; margin-bottom:25px; }
+    input, select {
+      width:100%; padding:10px; margin:5px 0; background:#000;
+      border:1px solid rgba(98,255,158,0.3); color:#62ff9e;
+    }
+    button {
+      margin-top:10px; padding:12px; width:100%; background:#62ff9e;
+      border:none; color:#030604; font-weight:bold; cursor:pointer;
+    }
+    .danger { background:#ff4d4d; color:#fff; }
+    .stats { display:flex; justify-content:space-between; flex-wrap:wrap; }
+    .stat { width:30%; margin-bottom:15px; }
+    ul { padding-left:20px; }
+    li { margin-bottom:5px; }
+    a { color:#62ff9e; }
+
+    #galleryOverlay {
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.96);
+      z-index:9999;
+      padding:20px;
+    }
+
+    .gallery-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:15px;
+      margin-bottom:15px;
+    }
+
+    .gallery-controls {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:15px;
+    }
+
+    .gallery-controls button,
+    .gallery-controls select {
+      width:auto;
+      min-width:140px;
+    }
+
+    .gallery-image-wrap {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:70vh;
+      border:1px solid rgba(98,255,158,0.3);
+      background:#000;
+    }
+
+    #galleryImage {
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+    }
+
+    #galleryInfo {
+      margin-top:15px;
+      text-align:center;
+      color:#62ff9e;
+    }
+
+    .close-btn {
+      width:auto;
+      background:#ff4d4d;
+      color:white;
+      padding:10px 18px;
+    }
+  </style>
 </head>
 
 <body>
 
 <div class="nav">
-<a href="index.html">HOME</a>
-<a href="playbook.html">PLAYBOOK</a>
-<a href="journal.html">JOURNAL</a>
+  <a href="index.html">HOME</a>
+  <a href="playbook.html">PLAYBOOK</a>
+  <a href="journal.html">JOURNAL</a>
 </div>
+
+<h1>TRADING JOURNAL</h1>
 
 <div class="container">
 
-<div class="card">
-<h2>Add Trade</h2>
-<form id="form">
-<input id="date" type="date">
-<select id="play"><option>Sweep and Reap</option><option>Matrix</option></select>
-<select id="market"><option>ES</option><option>NQ</option></select>
-<select id="quality"><option>A+</option><option>Valid</option><option>Mistake</option></select>
-<select id="status"><option>Win</option><option>Loss</option><option>BE</option></select>
-<input id="r" placeholder="R Result">
-<input id="pnl" placeholder="PnL ($)">
-<input id="link" placeholder="TradingView Snapshot Link">
-<button>Save Trade</button>
-</form>
-<p id="statusMsg"></p>
-</div>
+  <div class="card">
+    <h2>Add Trade</h2>
 
-<div class="card">
-<h2>Stats</h2>
-<div class="stats">
-<div class="stat">Trades: <span id="trades"></span></div>
-<div class="stat">Winrate: <span id="winrate"></span></div>
-<div class="stat">Total R: <span id="totalR"></span></div>
-<div class="stat">Total $: <span id="totalPnl"></span></div>
-<div class="stat">Profit Factor: <span id="pf"></span></div>
-<div class="stat">Max DD: <span id="dd"></span></div>
-</div>
-</div>
+    <form id="form">
+      <input id="date" type="date">
 
-<div class="card">
-<h2>Gallery</h2>
-<button id="openGallery">Open Gallery</button>
-</div>
+      <select id="play">
+        <option>Sweep and Reap</option>
+        <option>Matrix</option>
+      </select>
+
+      <select id="market">
+        <option>ES</option>
+        <option>NQ</option>
+      </select>
+
+      <select id="quality">
+        <option>A+</option>
+        <option>Valid</option>
+        <option>Missing / Mistake</option>
+      </select>
+
+      <select id="status">
+        <option>Win</option>
+        <option>Loss</option>
+        <option>BE</option>
+      </select>
+
+      <input id="r" placeholder="Result (R)">
+      <input id="pnl" placeholder="$ Win / Loss e.g. 150 or -75">
+      <input id="link" placeholder="TradingView Snapshot Link">
+
+      <button type="submit">Save Trade</button>
+    </form>
+
+    <p id="statusMsg">Ready</p>
+  </div>
+
+  <div class="card">
+    <h2>Filters</h2>
+
+    <select id="filterPlay">
+      <option value="All">All Plays</option>
+      <option value="Sweep and Reap">Sweep and Reap</option>
+      <option value="Matrix">Matrix</option>
+    </select>
+
+    <select id="filterMarket">
+      <option value="All">All Markets</option>
+      <option value="ES">ES</option>
+      <option value="NQ">NQ</option>
+    </select>
+
+    <select id="filterQuality">
+      <option value="All">All Quality</option>
+      <option value="A+">A+</option>
+      <option value="Valid">Valid</option>
+      <option value="Missing / Mistake">Missing / Mistake</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h2>Stats</h2>
+
+    <div class="stats">
+      <div class="stat">Total Trades: <span id="trades">0</span></div>
+      <div class="stat">Winrate: <span id="winrate">0%</span></div>
+      <div class="stat">Total R: <span id="totalR">0</span></div>
+      <div class="stat">Total PnL: <span id="totalPnl">$0</span></div>
+      <div class="stat">Profit Factor: <span id="profitFactor">0</span></div>
+      <div class="stat">Max $ Drawdown: <span id="maxDrawdown">$0</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Overall Equity Curve</h2>
+    <canvas id="equityChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Separate Equity Curves</h2>
+    <canvas id="playChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Trade Gallery</h2>
+    <button id="openGalleryBtn">Open Trade Gallery</button>
+  </div>
+
+  <div class="card">
+    <h2>Trades</h2>
+    <ul id="list"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Danger Zone</h2>
+    <button class="danger" id="clearBtn">Clear All Trade Data</button>
+  </div>
 
 </div>
 
 <div id="galleryOverlay">
-<select id="gPlay"><option>All</option><option>Sweep and Reap</option><option>Matrix</option></select>
-<select id="gStatus"><option>All</option><option>Win</option><option>Loss</option></select>
-<button id="prev">Prev</button>
-<button id="next">Next</button>
-<button id="close">Close</button>
-<br><br>
-<img id="gImg" class="gallery-img">
-<div id="gInfo"></div>
+  <div class="gallery-top">
+    <h2>TRADE GALLERY</h2>
+    <button class="close-btn" id="closeGalleryBtn">Close</button>
+  </div>
+
+  <div class="gallery-controls">
+    <select id="galleryFilterPlay">
+      <option value="All">All Plays</option>
+      <option value="Sweep and Reap">Sweep and Reap</option>
+      <option value="Matrix">Matrix</option>
+    </select>
+
+    <select id="galleryFilterMarket">
+      <option value="All">All Markets</option>
+      <option value="ES">ES</option>
+      <option value="NQ">NQ</option>
+    </select>
+
+    <select id="galleryFilterStatus">
+      <option value="All">All Results</option>
+      <option value="Win">Wins</option>
+      <option value="Loss">Losses</option>
+      <option value="BE">Break Even</option>
+    </select>
+
+    <button id="prevGalleryBtn">Previous</button>
+    <button id="nextGalleryBtn">Next</button>
+  </div>
+
+  <div class="gallery-image-wrap">
+    <img id="galleryImage" src="" alt="Trade chart">
+  </div>
+
+  <div id="galleryInfo">No trade selected</div>
 </div>
 
 <script>
-const client = supabase.createClient(
-"https://ebdyavzqraejwrvaclfg.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg"
-);
+const SUPABASE_URL = "https://ebdyavzqraejwrvaclfg.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg";
 
-let trades=[],gTrades=[],i=0;
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function today(){
-document.getElementById("date").value=new Date().toISOString().split("T")[0];
+const form = document.getElementById("form");
+const statusMsg = document.getElementById("statusMsg");
+const filterPlay = document.getElementById("filterPlay");
+const filterMarket = document.getElementById("filterMarket");
+const filterQuality = document.getElementById("filterQuality");
+const clearBtn = document.getElementById("clearBtn");
+
+const openGalleryBtn = document.getElementById("openGalleryBtn");
+const closeGalleryBtn = document.getElementById("closeGalleryBtn");
+const galleryOverlay = document.getElementById("galleryOverlay");
+const galleryImage = document.getElementById("galleryImage");
+const galleryInfo = document.getElementById("galleryInfo");
+const galleryFilterPlay = document.getElementById("galleryFilterPlay");
+const galleryFilterMarket = document.getElementById("galleryFilterMarket");
+const galleryFilterStatus = document.getElementById("galleryFilterStatus");
+const prevGalleryBtn = document.getElementById("prevGalleryBtn");
+const nextGalleryBtn = document.getElementById("nextGalleryBtn");
+
+let equityChart = null;
+let playChart = null;
+let allTrades = [];
+let galleryTrades = [];
+let galleryIndex = 0;
+
+function setTodayDate(){
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("date").value = today;
 }
 
-document.getElementById("form").onsubmit=async e=>{
-e.preventDefault();
+form.addEventListener("submit", async (e)=>{
+  e.preventDefault();
 
-await client.from("trades").insert([{
-trade_date:date.value,
-play:play.value,
-market:market.value,
-quality:quality.value,
-status:status.value,
-result_r:Number(r.value),
-pnl:Number(pnl.value),
-image_url:link.value
-}]);
+  statusMsg.innerText = "Saving...";
 
-today();
-load();
-};
+  const trade = {
+    trade_date: document.getElementById("date").value,
+    play: document.getElementById("play").value,
+    market: document.getElementById("market").value,
+    quality: document.getElementById("quality").value,
+    direction: "Long",
+    status: document.getElementById("status").value,
+    result_r: Number(document.getElementById("r").value || 0),
+    pnl: Number(document.getElementById("pnl").value || 0),
+    image_url: document.getElementById("link").value
+  };
 
-async function load(){
-let {data}=await client.from("trades").select("*");
-trades=data||[];
+  const { error } = await client.from("trades").insert([trade]);
 
-calcStats();
-}
+  if(error){
+    statusMsg.innerText = error.message;
+    return;
+  }
 
-function calcStats(){
-let total=trades.length;
-let wins=trades.filter(t=>t.result_r>0);
-let losses=trades.filter(t=>t.result_r<0);
-
-let totalR=trades.reduce((a,b)=>a+(b.result_r||0),0);
-let totalPnl=trades.reduce((a,b)=>a+(b.pnl||0),0);
-
-let pf = losses.length ? 
-(wins.reduce((a,b)=>a+b.result_r,0)/Math.abs(losses.reduce((a,b)=>a+b.result_r,0))).toFixed(2) : 0;
-
-let equity=0,max=0,dd=0;
-trades.forEach(t=>{
-equity+=t.result_r||0;
-if(equity>max) max=equity;
-let d=max-equity;
-if(d>dd) dd=d;
+  statusMsg.innerText = "Trade saved";
+  form.reset();
+  setTodayDate();
+  load();
 });
 
-tradesEl.innerText=total;
-winrate.innerText=(total?(wins.length/total*100).toFixed(1):0)+"%";
-totalREl.innerText=totalR.toFixed(2);
-totalPnlEl.innerText="$"+totalPnl.toFixed(2);
-pfEl.innerText=pf;
-ddEl.innerText=dd.toFixed(2);
+filterPlay.addEventListener("change", applyFilters);
+filterMarket.addEventListener("change", applyFilters);
+filterQuality.addEventListener("change", applyFilters);
+
+clearBtn.addEventListener("click", async ()=>{
+  const sure = confirm("Are you sure you want to delete ALL trade data? This cannot be undone.");
+  if(!sure){ return; }
+
+  const reallySure = confirm("Final warning: this will permanently delete every trade. Continue?");
+  if(!reallySure){ return; }
+
+  const { error } = await client.from("trades").delete().neq("id", 0);
+
+  if(error){
+    alert("Error: " + error.message);
+    return;
+  }
+
+  alert("All trade data cleared.");
+  load();
+});
+
+openGalleryBtn.addEventListener("click", ()=>{
+  galleryOverlay.style.display = "block";
+  buildGalleryTrades();
+  showGalleryTrade();
+});
+
+closeGalleryBtn.addEventListener("click", ()=>{
+  galleryOverlay.style.display = "none";
+});
+
+galleryFilterPlay.addEventListener("change", ()=>{
+  galleryIndex = 0;
+  buildGalleryTrades();
+  showGalleryTrade();
+});
+
+galleryFilterMarket.addEventListener("change", ()=>{
+  galleryIndex = 0;
+  buildGalleryTrades();
+  showGalleryTrade();
+});
+
+galleryFilterStatus.addEventListener("change", ()=>{
+  galleryIndex = 0;
+  buildGalleryTrades();
+  showGalleryTrade();
+});
+
+prevGalleryBtn.addEventListener("click", ()=>{
+  if(galleryTrades.length === 0){ return; }
+  galleryIndex--;
+  if(galleryIndex < 0){ galleryIndex = galleryTrades.length - 1; }
+  showGalleryTrade();
+});
+
+nextGalleryBtn.addEventListener("click", ()=>{
+  if(galleryTrades.length === 0){ return; }
+  galleryIndex++;
+  if(galleryIndex >= galleryTrades.length){ galleryIndex = 0; }
+  showGalleryTrade();
+});
+
+function buildGalleryTrades(){
+  galleryTrades = allTrades.filter(t => t.image_url);
+
+  if(galleryFilterPlay.value !== "All"){
+    galleryTrades = galleryTrades.filter(t => t.play === galleryFilterPlay.value);
+  }
+
+  if(galleryFilterMarket.value !== "All"){
+    galleryTrades = galleryTrades.filter(t => t.market === galleryFilterMarket.value);
+  }
+
+  if(galleryFilterStatus.value !== "All"){
+    galleryTrades = galleryTrades.filter(t => t.status === galleryFilterStatus.value);
+  }
 }
 
-openGallery.onclick=()=>{
-galleryOverlay.style.display="block";
-filterGallery();
-};
+function showGalleryTrade(){
+  if(galleryTrades.length === 0){
+    galleryImage.src = "";
+    galleryImage.style.display = "none";
+    galleryInfo.innerHTML = "No chart links found for this filter.";
+    return;
+  }
 
-close.onclick=()=>galleryOverlay.style.display="none";
+  const trade = galleryTrades[galleryIndex];
 
-gPlay.onchange=filterGallery;
-gStatus.onchange=filterGallery;
+  galleryImage.style.display = "block";
+  galleryImage.src = trade.image_url;
 
-function filterGallery(){
-gTrades=trades.filter(t=>t.image_url);
+  galleryImage.onerror = function(){
+    galleryImage.style.display = "none";
+    galleryInfo.innerHTML = `
+      Image preview unavailable.<br>
+      <a href="${trade.image_url}" target="_blank">Open TradingView Snapshot</a>
+    `;
+  };
 
-if(gPlay.value!="All")
-gTrades=gTrades.filter(t=>t.play==gPlay.value);
+  galleryImage.onload = function(){
+    galleryImage.style.display = "block";
+  };
 
-if(gStatus.value!="All")
-gTrades=gTrades.filter(t=>t.status==gStatus.value);
-
-i=0;
-show();
+  galleryInfo.innerHTML = `
+    ${galleryIndex + 1} / ${galleryTrades.length}<br>
+    ${trade.trade_date} | ${trade.play} | ${trade.market} | ${trade.status} | ${trade.quality || "No Tag"} | ${trade.result_r}R | $${Number(trade.pnl || 0).toFixed(2)}<br>
+    <a href="${trade.image_url}" target="_blank">Open Chart</a>
+  `;
 }
 
-function show(){
-if(!gTrades.length)return;
+async function load(){
+  const { data, error } = await client
+    .from("trades")
+    .select("*")
+    .order("trade_date", { ascending: true });
 
-let t=gTrades[i];
+  if(error){
+    statusMsg.innerText = error.message;
+    return;
+  }
 
-gImg.src=t.image_url;
-gInfo.innerHTML=`${t.trade_date} | ${t.play} | ${t.status} | $${t.pnl}`;
+  allTrades = data || [];
+  applyFilters();
 }
 
-prev.onclick=()=>{i=(i-1+gTrades.length)%gTrades.length;show();}
-next.onclick=()=>{i=(i+1)%gTrades.length;show();}
+function applyFilters(){
+  let filtered = [...allTrades];
 
-today();
+  if(filterPlay.value !== "All"){
+    filtered = filtered.filter(t => t.play === filterPlay.value);
+  }
+
+  if(filterMarket.value !== "All"){
+    filtered = filtered.filter(t => t.market === filterMarket.value);
+  }
+
+  if(filterQuality.value !== "All"){
+    filtered = filtered.filter(t => t.quality === filterQuality.value);
+  }
+
+  updateStats(filtered);
+  updateList(filtered);
+  drawOverallChart(filtered);
+  drawSeparatePlayChart(filtered);
+}
+
+function updateStats(data){
+  let total = data.length;
+  let wins = data.filter(t => Number(t.result_r) > 0);
+  let totalR = data.reduce((sum,t)=>sum + Number(t.result_r || 0),0);
+
+  let totalPnl = data.reduce((sum,t)=>sum + Number(t.pnl || 0),0);
+  let grossProfit = data
+    .filter(t => Number(t.pnl || 0) > 0)
+    .reduce((sum,t)=>sum + Number(t.pnl || 0),0);
+
+  let grossLoss = Math.abs(
+    data
+      .filter(t => Number(t.pnl || 0) < 0)
+      .reduce((sum,t)=>sum + Number(t.pnl || 0),0)
+  );
+
+  let profitFactor = grossLoss ? grossProfit / grossLoss : (grossProfit > 0 ? Infinity : 0);
+  let winrate = total ? ((wins.length / total) * 100).toFixed(1) : 0;
+
+  let equity = 0;
+  let peak = 0;
+  let maxDrawdown = 0;
+
+  const sorted = [...data].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
+
+  sorted.forEach(t=>{
+    equity += Number(t.pnl || 0);
+    if(equity > peak){ peak = equity; }
+    const drawdown = peak - equity;
+    if(drawdown > maxDrawdown){ maxDrawdown = drawdown; }
+  });
+
+  document.getElementById("trades").innerText = total;
+  document.getElementById("winrate").innerText = winrate + "%";
+  document.getElementById("totalR").innerText = totalR.toFixed(2);
+  document.getElementById("totalPnl").innerText = "$" + totalPnl.toFixed(2);
+  document.getElementById("profitFactor").innerText = profitFactor === Infinity ? "∞" : profitFactor.toFixed(2);
+  document.getElementById("maxDrawdown").innerText = "$" + maxDrawdown.toFixed(2);
+}
+
+function updateList(data){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(t=>{
+    const li = document.createElement("li");
+    li.innerHTML = `
+      ${t.trade_date} | ${t.play} | ${t.market} | ${t.status} | ${t.quality || "No Tag"} | ${t.result_r}R | $${Number(t.pnl || 0).toFixed(2)} |
+      <a href="${t.image_url}" target="_blank">Chart</a>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function drawOverallChart(trades){
+  const sorted = [...trades].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
+
+  let equity = 0;
+  const labels = [];
+  const data = [];
+
+  sorted.forEach(t=>{
+    equity += Number(t.result_r || 0);
+    labels.push(t.trade_date);
+    data.push(equity);
+  });
+
+  const ctx = document.getElementById("equityChart");
+
+  if(equityChart){ equityChart.destroy(); }
+
+  equityChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Overall Equity (R)",
+        data: data,
+        borderColor: "#62ff9e",
+        backgroundColor: "rgba(98,255,158,0.15)",
+        tension: 0.25
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: "#62ff9e" } } },
+      scales: {
+        x: { ticks: { color: "#62ff9e" }, grid: { color: "rgba(98,255,158,0.1)" } },
+        y: { ticks: { color: "#62ff9e" }, grid: { color: "rgba(98,255,158,0.1)" } }
+      }
+    }
+  });
+}
+
+function drawSeparatePlayChart(trades){
+  const sorted = [...trades].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
+
+  let sweepEquity = 0;
+  let matrixEquity = 0;
+
+  const labels = [];
+  const sweepData = [];
+  const matrixData = [];
+
+  sorted.forEach(t=>{
+    labels.push(t.trade_date);
+
+    if(t.play === "Sweep and Reap"){
+      sweepEquity += Number(t.result_r || 0);
+    }
+
+    if(t.play === "Matrix"){
+      matrixEquity += Number(t.result_r || 0);
+    }
+
+    sweepData.push(sweepEquity);
+    matrixData.push(matrixEquity);
+  });
+
+  const ctx = document.getElementById("playChart");
+
+  if(playChart){ playChart.destroy(); }
+
+  playChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Sweep and Reap",
+          data: sweepData,
+          borderColor: "#62ff9e",
+          backgroundColor: "rgba(98,255,158,0.10)",
+          tension: 0.25
+        },
+        {
+          label: "Matrix",
+          data: matrixData,
+          borderColor: "#ffffff",
+          backgroundColor: "rgba(255,255,255,0.10)",
+          tension: 0.25
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: "#62ff9e" } } },
+      scales: {
+        x: { ticks: { color: "#62ff9e" }, grid: { color: "rgba(98,255,158,0.1)" } },
+        y: { ticks: { color: "#62ff9e" }, grid: { color: "rgba(98,255,158,0.1)" } }
+      }
+    }
+  });
+}
+
+setTodayDate();
 load();
 </script>
 
 </body>
 </html>
-<!-- FULL SCRIPT END -->
