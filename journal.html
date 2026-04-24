@@ -35,6 +35,7 @@
       margin-top:10px; padding:12px; width:100%; background:#62ff9e;
       border:none; color:#030604; font-weight:bold; cursor:pointer;
     }
+
     .danger { background:#ff4d4d; color:#fff; }
     .stats { display:flex; justify-content:space-between; flex-wrap:wrap; }
     .stat { width:30%; margin-bottom:15px; }
@@ -220,13 +221,14 @@
   </div>
 
   <div class="card">
-    <h2>Overall Equity Curve</h2>
-    <canvas id="equityChart"></canvas>
-  </div>
+    <h2>Equity Curve</h2>
 
-  <div class="card">
-    <h2>Separate Equity Curves</h2>
-    <canvas id="playChart"></canvas>
+    <select id="chartMode">
+      <option value="overall">Overall Equity Curve</option>
+      <option value="separate">Separate Equity Curves</option>
+    </select>
+
+    <canvas id="equityChart"></canvas>
   </div>
 
   <div class="card">
@@ -294,6 +296,7 @@ const statusMsg = document.getElementById("statusMsg");
 const filterPlay = document.getElementById("filterPlay");
 const filterMarket = document.getElementById("filterMarket");
 const filterQuality = document.getElementById("filterQuality");
+const chartMode = document.getElementById("chartMode");
 const clearBtn = document.getElementById("clearBtn");
 const statusSelect = document.getElementById("status");
 const beReasonWrap = document.getElementById("beReasonWrap");
@@ -310,7 +313,6 @@ const prevGalleryBtn = document.getElementById("prevGalleryBtn");
 const nextGalleryBtn = document.getElementById("nextGalleryBtn");
 
 let equityChart = null;
-let playChart = null;
 let allTrades = [];
 let galleryTrades = [];
 let galleryIndex = 0;
@@ -367,6 +369,7 @@ form.addEventListener("submit", async (e)=>{
 filterPlay.addEventListener("change", applyFilters);
 filterMarket.addEventListener("change", applyFilters);
 filterQuality.addEventListener("change", applyFilters);
+chartMode.addEventListener("change", applyFilters);
 
 clearBtn.addEventListener("click", async ()=>{
   const sure = confirm("Are you sure you want to delete ALL trade data? This cannot be undone.");
@@ -510,8 +513,7 @@ function applyFilters(){
 
   updateStats(filtered);
   updateList(filtered);
-  drawOverallChart(filtered);
-  drawSeparatePlayChart(filtered);
+  drawSelectedChart(filtered);
 }
 
 function updateStats(data){
@@ -574,6 +576,14 @@ function updateList(data){
     `;
     list.appendChild(li);
   });
+}
+
+function drawSelectedChart(trades){
+  if(chartMode.value === "overall"){
+    drawOverallChart(trades);
+  } else {
+    drawSeparatePlayChart(trades);
+  }
 }
 
 function drawOverallChart(trades){
@@ -649,11 +659,11 @@ function drawSeparatePlayChart(trades){
     matrixData.push(matrixEquity);
   });
 
-  const ctx = document.getElementById("playChart");
+  const ctx = document.getElementById("equityChart");
 
-  if(playChart){ playChart.destroy(); }
+  if(equityChart){ equityChart.destroy(); }
 
-  playChart = new Chart(ctx, {
+  equityChart = new Chart(ctx, {
     type: "line",
     data: {
       labels: labels,
