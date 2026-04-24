@@ -12,8 +12,14 @@
     h1 { text-align:center; margin-top:30px; }
     .container { max-width:1000px; margin:30px auto; padding:20px; }
     .card { border:1px solid rgba(98,255,158,0.3); padding:20px; margin-bottom:25px; }
-    input, select { width:100%; padding:10px; margin:5px 0; background:#000; border:1px solid rgba(98,255,158,0.3); color:#62ff9e; }
-    button { margin-top:10px; padding:12px; width:100%; background:#62ff9e; border:none; color:#030604; font-weight:bold; cursor:pointer; }
+    input, select {
+      width:100%; padding:10px; margin:5px 0; background:#000;
+      border:1px solid rgba(98,255,158,0.3); color:#62ff9e;
+    }
+    button {
+      margin-top:10px; padding:12px; width:100%; background:#62ff9e;
+      border:none; color:#030604; font-weight:bold; cursor:pointer;
+    }
     .danger { background:#ff4d4d; color:#fff; }
     .stats { display:flex; justify-content:space-between; flex-wrap:wrap; }
     .stat { width:30%; margin-bottom:15px; }
@@ -21,22 +27,66 @@
     li { margin-bottom:5px; }
     a { color:#62ff9e; }
 
-    .gallery-grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
-      gap:20px;
+    #galleryOverlay {
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.96);
+      z-index:9999;
+      padding:20px;
     }
 
-    .gallery-card {
+    .gallery-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:15px;
+      margin-bottom:15px;
+    }
+
+    .gallery-top h2 {
+      margin:0;
+    }
+
+    .gallery-controls {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:15px;
+    }
+
+    .gallery-controls button,
+    .gallery-controls select {
+      width:auto;
+      min-width:140px;
+    }
+
+    .gallery-image-wrap {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:70vh;
       border:1px solid rgba(98,255,158,0.3);
-      padding:12px;
       background:#000;
     }
 
-    .gallery-card img {
-      width:100%;
-      border:1px solid rgba(98,255,158,0.3);
-      margin-bottom:10px;
+    #galleryImage {
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+    }
+
+    #galleryInfo {
+      margin-top:15px;
+      text-align:center;
+      color:#62ff9e;
+    }
+
+    .close-btn {
+      width:auto;
+      background:#ff4d4d;
+      color:white;
+      padding:10px 18px;
     }
   </style>
 </head>
@@ -47,7 +97,6 @@
   <a href="index.html">HOME</a>
   <a href="playbook.html">PLAYBOOK</a>
   <a href="journal.html">JOURNAL</a>
-  <a href="#gallery">GALLERY</a>
 </div>
 
 <h1>TRADING JOURNAL</h1>
@@ -135,13 +184,13 @@
   </div>
 
   <div class="card">
-    <h2>Trades</h2>
-    <ul id="list"></ul>
+    <h2>Trade Gallery</h2>
+    <button id="openGalleryBtn">Open Trade Gallery</button>
   </div>
 
-  <div class="card" id="gallery">
-    <h2>Trade Gallery</h2>
-    <div id="galleryGrid" class="gallery-grid"></div>
+  <div class="card">
+    <h2>Trades</h2>
+    <ul id="list"></ul>
   </div>
 
   <div class="card">
@@ -149,6 +198,36 @@
     <button class="danger" id="clearBtn">Clear All Trade Data</button>
   </div>
 
+</div>
+
+<div id="galleryOverlay">
+  <div class="gallery-top">
+    <h2>TRADE GALLERY</h2>
+    <button class="close-btn" id="closeGalleryBtn">Close</button>
+  </div>
+
+  <div class="gallery-controls">
+    <select id="galleryFilterPlay">
+      <option value="All">All Plays</option>
+      <option value="Sweep and Reap">Sweep and Reap</option>
+      <option value="Matrix">Matrix</option>
+    </select>
+
+    <select id="galleryFilterMarket">
+      <option value="All">All Markets</option>
+      <option value="ES">ES</option>
+      <option value="NQ">NQ</option>
+    </select>
+
+    <button id="prevGalleryBtn">Previous</button>
+    <button id="nextGalleryBtn">Next</button>
+  </div>
+
+  <div class="gallery-image-wrap">
+    <img id="galleryImage" src="" alt="Trade chart">
+  </div>
+
+  <div id="galleryInfo">No trade selected</div>
 </div>
 
 <script>
@@ -164,9 +243,21 @@ const filterMarket = document.getElementById("filterMarket");
 const filterQuality = document.getElementById("filterQuality");
 const clearBtn = document.getElementById("clearBtn");
 
+const openGalleryBtn = document.getElementById("openGalleryBtn");
+const closeGalleryBtn = document.getElementById("closeGalleryBtn");
+const galleryOverlay = document.getElementById("galleryOverlay");
+const galleryImage = document.getElementById("galleryImage");
+const galleryInfo = document.getElementById("galleryInfo");
+const galleryFilterPlay = document.getElementById("galleryFilterPlay");
+const galleryFilterMarket = document.getElementById("galleryFilterMarket");
+const prevGalleryBtn = document.getElementById("prevGalleryBtn");
+const nextGalleryBtn = document.getElementById("nextGalleryBtn");
+
 let equityChart = null;
 let playChart = null;
 let allTrades = [];
+let galleryTrades = [];
+let galleryIndex = 0;
 
 function setTodayDate(){
   const today = new Date().toISOString().split("T")[0];
@@ -209,20 +300,13 @@ filterQuality.addEventListener("change", applyFilters);
 clearBtn.addEventListener("click", async ()=>{
   const sure = confirm("Are you sure you want to delete ALL trade data? This cannot be undone.");
 
-  if(!sure){
-    return;
-  }
+  if(!sure){ return; }
 
   const reallySure = confirm("Final warning: this will permanently delete every trade. Continue?");
 
-  if(!reallySure){
-    return;
-  }
+  if(!reallySure){ return; }
 
-  const { error } = await client
-    .from("trades")
-    .delete()
-    .neq("id", 0);
+  const { error } = await client.from("trades").delete().neq("id", 0);
 
   if(error){
     alert("Error: " + error.message);
@@ -232,6 +316,88 @@ clearBtn.addEventListener("click", async ()=>{
   alert("All trade data cleared.");
   load();
 });
+
+openGalleryBtn.addEventListener("click", ()=>{
+  galleryOverlay.style.display = "block";
+  buildGalleryTrades();
+  showGalleryTrade();
+});
+
+closeGalleryBtn.addEventListener("click", ()=>{
+  galleryOverlay.style.display = "none";
+});
+
+galleryFilterPlay.addEventListener("change", ()=>{
+  galleryIndex = 0;
+  buildGalleryTrades();
+  showGalleryTrade();
+});
+
+galleryFilterMarket.addEventListener("change", ()=>{
+  galleryIndex = 0;
+  buildGalleryTrades();
+  showGalleryTrade();
+});
+
+prevGalleryBtn.addEventListener("click", ()=>{
+  if(galleryTrades.length === 0){ return; }
+  galleryIndex = galleryIndex - 1;
+  if(galleryIndex < 0){
+    galleryIndex = galleryTrades.length - 1;
+  }
+  showGalleryTrade();
+});
+
+nextGalleryBtn.addEventListener("click", ()=>{
+  if(galleryTrades.length === 0){ return; }
+  galleryIndex = galleryIndex + 1;
+  if(galleryIndex >= galleryTrades.length){
+    galleryIndex = 0;
+  }
+  showGalleryTrade();
+});
+
+function buildGalleryTrades(){
+  galleryTrades = allTrades.filter(t => t.image_url);
+
+  if(galleryFilterPlay.value !== "All"){
+    galleryTrades = galleryTrades.filter(t => t.play === galleryFilterPlay.value);
+  }
+
+  if(galleryFilterMarket.value !== "All"){
+    galleryTrades = galleryTrades.filter(t => t.market === galleryFilterMarket.value);
+  }
+}
+
+function showGalleryTrade(){
+  if(galleryTrades.length === 0){
+    galleryImage.src = "";
+    galleryInfo.innerHTML = "No chart links found for this filter.";
+    return;
+  }
+
+  const trade = galleryTrades[galleryIndex];
+
+  galleryImage.src = trade.image_url;
+
+  galleryImage.onerror = function(){
+    galleryImage.style.display = "none";
+    galleryInfo.innerHTML = `
+      Image preview unavailable.<br>
+      <a href="${trade.image_url}" target="_blank">Open TradingView Snapshot</a>
+    `;
+  };
+
+  galleryImage.onload = function(){
+    galleryImage.style.display = "block";
+  };
+
+  galleryInfo.innerHTML = `
+    ${galleryIndex + 1} / ${galleryTrades.length}<br>
+    ${trade.trade_date} | ${trade.play} | ${trade.market} | ${trade.quality || "No Tag"} | ${trade.result_r}R<br>
+    <a href="${trade.image_url}" target="_blank">Open Chart</a>
+  `;
+}
 
 async function load(){
   const { data, error } = await client
@@ -265,7 +431,6 @@ function applyFilters(){
 
   updateStats(filtered);
   updateList(filtered);
-  updateGallery(filtered);
   drawOverallChart(filtered);
   drawSeparatePlayChart(filtered);
 }
@@ -295,29 +460,6 @@ function updateList(data){
   });
 }
 
-function updateGallery(data){
-  const gallery = document.getElementById("galleryGrid");
-  gallery.innerHTML = "";
-
-  data.forEach(t=>{
-    if(!t.image_url){
-      return;
-    }
-
-    const card = document.createElement("div");
-    card.className = "gallery-card";
-
-    card.innerHTML = `
-      <img src="${t.image_url}" alt="Trade chart" onerror="this.style.display='none'">
-      <p>${t.trade_date} | ${t.play} | ${t.market}</p>
-      <p>${t.quality || "No Tag"} | ${t.result_r}R</p>
-      <a href="${t.image_url}" target="_blank">Open Chart</a>
-    `;
-
-    gallery.appendChild(card);
-  });
-}
-
 function drawOverallChart(trades){
   const sorted = [...trades].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
 
@@ -333,9 +475,7 @@ function drawOverallChart(trades){
 
   const ctx = document.getElementById("equityChart");
 
-  if(equityChart){
-    equityChart.destroy();
-  }
+  if(equityChart){ equityChart.destroy(); }
 
   equityChart = new Chart(ctx, {
     type: "line",
@@ -387,9 +527,7 @@ function drawSeparatePlayChart(trades){
 
   const ctx = document.getElementById("playChart");
 
-  if(playChart){
-    playChart.destroy();
-  }
+  if(playChart){ playChart.destroy(); }
 
   playChart = new Chart(ctx, {
     type: "line",
