@@ -14,6 +14,7 @@
     .card { border:1px solid rgba(98,255,158,0.3); padding:20px; margin-bottom:25px; }
     input, select { width:100%; padding:10px; margin:5px 0; background:#000; border:1px solid rgba(98,255,158,0.3); color:#62ff9e; }
     button { margin-top:10px; padding:12px; width:100%; background:#62ff9e; border:none; color:#030604; font-weight:bold; cursor:pointer; }
+    .danger { background:#ff4d4d; color:#fff; }
     .stats { display:flex; justify-content:space-between; flex-wrap:wrap; }
     .stat { width:30%; margin-bottom:15px; }
     ul { padding-left:20px; }
@@ -50,6 +51,12 @@
         <option>NQ</option>
       </select>
 
+      <select id="quality">
+        <option>A+</option>
+        <option>Valid</option>
+        <option>Missing / Mistake</option>
+      </select>
+
       <select id="status">
         <option>Win</option>
         <option>Loss</option>
@@ -79,6 +86,13 @@
       <option value="ES">ES</option>
       <option value="NQ">NQ</option>
     </select>
+
+    <select id="filterQuality">
+      <option value="All">All Quality</option>
+      <option value="A+">A+</option>
+      <option value="Valid">Valid</option>
+      <option value="Missing / Mistake">Missing / Mistake</option>
+    </select>
   </div>
 
   <div class="card">
@@ -92,13 +106,23 @@
   </div>
 
   <div class="card">
-    <h2>Equity Curve</h2>
+    <h2>Overall Equity Curve</h2>
     <canvas id="equityChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Separate Equity Curves</h2>
+    <canvas id="playChart"></canvas>
   </div>
 
   <div class="card">
     <h2>Trades</h2>
     <ul id="list"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Danger Zone</h2>
+    <button class="danger" id="clearBtn">Clear All Trade Data</button>
   </div>
 
 </div>
@@ -113,9 +137,17 @@ const form = document.getElementById("form");
 const statusMsg = document.getElementById("statusMsg");
 const filterPlay = document.getElementById("filterPlay");
 const filterMarket = document.getElementById("filterMarket");
+const filterQuality = document.getElementById("filterQuality");
+const clearBtn = document.getElementById("clearBtn");
 
 let equityChart = null;
+let playChart = null;
 let allTrades = [];
+
+function setTodayDate(){
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("date").value = today;
+}
 
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
@@ -126,6 +158,7 @@ form.addEventListener("submit", async (e)=>{
     trade_date: document.getElementById("date").value,
     play: document.getElementById("play").value,
     market: document.getElementById("market").value,
+    quality: document.getElementById("quality").value,
     direction: "Long",
     status: document.getElementById("status").value,
     result_r: Number(document.getElementById("r").value),
@@ -141,11 +174,40 @@ form.addEventListener("submit", async (e)=>{
 
   statusMsg.innerText = "Trade saved";
   form.reset();
+  setTodayDate();
   load();
 });
 
 filterPlay.addEventListener("change", applyFilters);
 filterMarket.addEventListener("change", applyFilters);
+filterQuality.addEventListener("change", applyFilters);
+
+clearBtn.addEventListener("click", async ()=>{
+  const sure = confirm("Are you sure you want to delete ALL trade data? This cannot be undone.");
+
+  if(!sure){
+    return;
+  }
+
+  const reallySure = confirm("Final warning: this will permanently delete every trade. Continue?");
+
+  if(!reallySure){
+    return;
+  }
+
+  const { error } = await client
+    .from("trades")
+    .delete()
+    .neq("id", 0);
+
+  if(error){
+    alert("Error: " + error.message);
+    return;
+  }
+
+  alert("All trade data cleared.");
+  load();
+});
 
 async function load(){
   const { data, error } = await client
@@ -165,20 +227,22 @@ async function load(){
 function applyFilters(){
   let filtered = [...allTrades];
 
-  const selectedPlay = filterPlay.value;
-  const selectedMarket = filterMarket.value;
-
-  if(selectedPlay !== "All"){
-    filtered = filtered.filter(t => t.play === selectedPlay);
+  if(filterPlay.value !== "All"){
+    filtered = filtered.filter(t => t.play === filterPlay.value);
   }
 
-  if(selectedMarket !== "All"){
-    filtered = filtered.filter(t => t.market === selectedMarket);
+  if(filterMarket.value !== "All"){
+    filtered = filtered.filter(t => t.market === filterMarket.value);
+  }
+
+  if(filterQuality.value !== "All"){
+    filtered = filtered.filter(t => t.quality === filterQuality.value);
   }
 
   updateStats(filtered);
   updateList(filtered);
-  drawChart(filtered);
+  drawOverallChart(filtered);
+  drawSeparatePlayChart(filtered);
 }
 
 function updateStats(data){
@@ -199,14 +263,14 @@ function updateList(data){
   data.forEach(t=>{
     const li = document.createElement("li");
     li.innerHTML = `
-      ${t.trade_date} | ${t.play} | ${t.market} | ${t.result_r}R |
+      ${t.trade_date} | ${t.play} | ${t.market} | ${t.quality || "No Tag"} | ${t.result_r}R |
       <a href="${t.image_url}" target="_blank">Chart</a>
     `;
     list.appendChild(li);
   });
 }
 
-function drawChart(trades){
+function drawOverallChart(trades){
   const sorted = [...trades].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
 
   let equity = 0;
@@ -230,7 +294,7 @@ function drawChart(trades){
     data: {
       labels: labels,
       datasets: [{
-        label: "Equity (R)",
+        label: "Overall Equity (R)",
         data: data,
         borderColor: "#62ff9e",
         backgroundColor: "rgba(98,255,158,0.15)",
@@ -239,23 +303,79 @@ function drawChart(trades){
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { labels: { color: "#62ff9e" } }
-      },
+      plugins: { legend: { labels: { color: "#62ff9e" } } },
       scales: {
-        x: {
-          ticks: { color: "#62ff9e" },
-          grid: { color: "rgba(98,255,158,0.1)" }
-        },
-        y: {
-          ticks: { color: "#62ff9e" },
-          grid: { color: "rgba(98,255,158,0.1)" }
-        }
+        x: { ticks: { color: "#62ff9e" }, grid: { color: "rgba(98,255,158,0.1)" } },
+        y: { ticks: { color: "#62ff9e" }, grid: { color: "rgba(98,255,158,0.1)" } }
       }
     }
   });
 }
 
+function drawSeparatePlayChart(trades){
+  const sorted = [...trades].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
+
+  let sweepEquity = 0;
+  let matrixEquity = 0;
+
+  const labels = [];
+  const sweepData = [];
+  const matrixData = [];
+
+  sorted.forEach(t=>{
+    labels.push(t.trade_date);
+
+    if(t.play === "Sweep and Reap"){
+      sweepEquity += Number(t.result_r || 0);
+    }
+
+    if(t.play === "Matrix"){
+      matrixEquity += Number(t.result_r || 0);
+    }
+
+    sweepData.push(sweepEquity);
+    matrixData.push(matrixEquity);
+  });
+
+  const ctx = document.getElementById("playChart");
+
+  if(playChart){
+    playChart.destroy();
+  }
+
+  playChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Sweep and Reap",
+          data: sweepData,
+          borderColor: "#62ff9e",
+          backgroundColor: "rgba(98,255,158,0.10)",
+          tension: 0.25
+        },
+        {
+          label: "Matrix",
+          data: matrixData,
+          borderColor: "#ffffff",
+          backgroundColor: "rgba(255,255,255,0.10)",
+          tension: 0.25
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: "#62ff9e" } } },
+      scales: {
+        x: { ticks: { color: "#62ff9e" }, grid: { color: "rgba(98,255,158,0.1)" } },
+        y: { ticks: { color: "#62ff9e" }, grid: { color: "rgba(98,255,158,0.1)" } }
+      }
+    }
+  });
+}
+
+setTodayDate();
 load();
 </script>
 
