@@ -3,56 +3,162 @@
 <head>
   <title>Journal</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
-    body { background:#030604; color:#62ff9e; font-family:Arial; padding:40px;}
-    input, select { padding:8px; margin:5px;}
-    button { padding:10px; background:#62ff9e; border:none;}
-    a { color:#62ff9e; }
+    body {
+      margin:0;
+      font-family: Arial;
+      background:#030604;
+      color:#62ff9e;
+    }
+
+    .nav {
+      padding:20px;
+      border-bottom:1px solid rgba(98,255,158,0.2);
+      text-align:center;
+    }
+
+    .nav a {
+      margin:0 15px;
+      text-decoration:none;
+      color:#62ff9e;
+      font-weight:bold;
+    }
+
+    h1 {
+      text-align:center;
+      margin-top:30px;
+    }
+
+    .container {
+      max-width:1000px;
+      margin:30px auto;
+      padding:20px;
+    }
+
+    .card {
+      border:1px solid rgba(98,255,158,0.3);
+      padding:20px;
+      margin-bottom:25px;
+    }
+
+    input, select {
+      width:100%;
+      padding:10px;
+      margin:5px 0;
+      background:#000;
+      border:1px solid rgba(98,255,158,0.3);
+      color:#62ff9e;
+    }
+
+    button {
+      margin-top:10px;
+      padding:12px;
+      width:100%;
+      background:#62ff9e;
+      border:none;
+      color:#030604;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    .stats {
+      display:flex;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .stat {
+      width:30%;
+      margin-bottom:15px;
+    }
+
+    ul {
+      padding-left:20px;
+    }
+
+    li {
+      margin-bottom:5px;
+    }
+
+    a {
+      color:#62ff9e;
+    }
+
   </style>
 </head>
 
 <body>
 
-<nav>
-  <a href="index.html">Home</a>
-  <a href="playbook.html">Playbook</a>
-  <a href="journal.html">Journal</a>
-</nav>
+<div class="nav">
+  <a href="index.html">HOME</a>
+  <a href="playbook.html">PLAYBOOK</a>
+  <a href="journal.html">JOURNAL</a>
+</div>
 
 <h1>TRADING JOURNAL</h1>
 
-<form id="form">
-  <input id="date" type="date">
-  <select id="play">
-    <option>Sweep and Reap</option>
-    <option>Matrix</option>
-  </select>
-  <select id="status">
-    <option>Win</option>
-    <option>Loss</option>
-    <option>BE</option>
-  </select>
-  <input id="r" placeholder="R result">
-  <input id="link" placeholder="TradingView link">
-  <button type="submit">Save</button>
-</form>
+<div class="container">
 
-<h2>Stats</h2>
-<p id="stats"></p>
+  <!-- FORM -->
+  <div class="card">
+    <h2>Add Trade</h2>
 
-<h2>Trades</h2>
-<ul id="list"></ul>
+    <form id="form">
+      <input id="date" type="date">
+
+      <select id="play">
+        <option>Sweep and Reap</option>
+        <option>Matrix</option>
+      </select>
+
+      <select id="status">
+        <option>Win</option>
+        <option>Loss</option>
+        <option>BE</option>
+      </select>
+
+      <input id="r" placeholder="Result (R)">
+      <input id="link" placeholder="TradingView Chart Link">
+
+      <button type="submit">Save Trade</button>
+    </form>
+
+    <p id="statusMsg">Ready</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="card">
+    <h2>Stats</h2>
+
+    <div class="stats">
+      <div class="stat">Trades: <span id="trades">0</span></div>
+      <div class="stat">Winrate: <span id="winrate">0%</span></div>
+      <div class="stat">Total R: <span id="totalR">0</span></div>
+    </div>
+  </div>
+
+  <!-- TRADES -->
+  <div class="card">
+    <h2>Trades</h2>
+    <ul id="list"></ul>
+  </div>
+
+</div>
 
 <script>
-const client = supabase.createClient(
-  "https://ebdyavzqraejwrvaclfg.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg"
-);
+const SUPABASE_URL = "https://ebdyavzqraejwrvaclfg.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg";
+
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const form = document.getElementById("form");
+const statusMsg = document.getElementById("statusMsg");
 
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
+
+  statusMsg.innerText = "Saving...";
 
   const trade = {
     trade_date: document.getElementById("date").value,
@@ -62,27 +168,40 @@ form.addEventListener("submit", async (e)=>{
     image_url: document.getElementById("link").value
   };
 
-  await client.from("trades").insert([trade]);
+  const { error } = await client.from("trades").insert([trade]);
 
+  if(error){
+    statusMsg.innerText = error.message;
+    return;
+  }
+
+  statusMsg.innerText = "Trade saved";
+  form.reset();
   load();
 });
 
 async function load(){
   const { data } = await client.from("trades").select("*");
 
-  let wins = data.filter(t=>t.result_r>0);
   let total = data.length;
-  let winrate = total ? (wins.length/total*100).toFixed(1) : 0;
+  let wins = data.filter(t => t.result_r > 0);
+  let totalR = data.reduce((sum,t)=>sum + (t.result_r || 0),0);
 
-  document.getElementById("stats").innerText =
-    "Trades: " + total + " | Winrate: " + winrate + "%";
+  let winrate = total ? ((wins.length / total) * 100).toFixed(1) : 0;
 
-  let list = document.getElementById("list");
+  document.getElementById("trades").innerText = total;
+  document.getElementById("winrate").innerText = winrate + "%";
+  document.getElementById("totalR").innerText = totalR.toFixed(2);
+
+  const list = document.getElementById("list");
   list.innerHTML = "";
 
   data.forEach(t=>{
-    let li = document.createElement("li");
-    li.innerHTML = t.play + " | " + t.result_r + "R | <a href='"+t.image_url+"' target='_blank'>Chart</a>";
+    const li = document.createElement("li");
+    li.innerHTML = `
+      ${t.play} | ${t.result_r}R | 
+      <a href="${t.image_url}" target="_blank">Chart</a>
+    `;
     list.appendChild(li);
   });
 }
