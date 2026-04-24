@@ -1,1 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Journal</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background:#030604; color:#62ff9e; font-family:Arial; padding:40px;}
+    input, select { padding:8px; margin:5px;}
+    button { padding:10px; background:#62ff9e; border:none;}
+    a { color:#62ff9e; }
+  </style>
+</head>
 
+<body>
+
+<nav>
+  <a href="index.html">Home</a>
+  <a href="playbook.html">Playbook</a>
+  <a href="journal.html">Journal</a>
+</nav>
+
+<h1>TRADING JOURNAL</h1>
+
+<form id="form">
+  <input id="date" type="date">
+  <select id="play">
+    <option>Sweep and Reap</option>
+    <option>Matrix</option>
+  </select>
+  <select id="status">
+    <option>Win</option>
+    <option>Loss</option>
+    <option>BE</option>
+  </select>
+  <input id="r" placeholder="R result">
+  <input id="link" placeholder="TradingView link">
+  <button type="submit">Save</button>
+</form>
+
+<h2>Stats</h2>
+<p id="stats"></p>
+
+<h2>Trades</h2>
+<ul id="list"></ul>
+
+<script>
+const client = supabase.createClient(
+  "https://ebdyavzqraejwrvaclfg.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg"
+);
+
+const form = document.getElementById("form");
+
+form.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+
+  const trade = {
+    trade_date: document.getElementById("date").value,
+    play: document.getElementById("play").value,
+    status: document.getElementById("status").value,
+    result_r: Number(document.getElementById("r").value),
+    image_url: document.getElementById("link").value
+  };
+
+  await client.from("trades").insert([trade]);
+
+  load();
+});
+
+async function load(){
+  const { data } = await client.from("trades").select("*");
+
+  let wins = data.filter(t=>t.result_r>0);
+  let total = data.length;
+  let winrate = total ? (wins.length/total*100).toFixed(1) : 0;
+
+  document.getElementById("stats").innerText =
+    "Trades: " + total + " | Winrate: " + winrate + "%";
+
+  let list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(t=>{
+    let li = document.createElement("li");
+    li.innerHTML = t.play + " | " + t.result_r + "R | <a href='"+t.image_url+"' target='_blank'>Chart</a>";
+    list.appendChild(li);
+  });
+}
+
+load();
+</script>
+
+</body>
+</html>
