@@ -3,27 +3,174 @@
 <head>
   <title>Playbook</title>
   <style>
-    body { background:#030604; color:#62ff9e; font-family:Arial; padding:40px;}
-    h1,h2 { text-align:center; }
-    a { color:#62ff9e; margin:10px; text-decoration:none; font-weight:bold;}
+    body {
+      margin:0;
+      font-family: Arial;
+      background:#030604;
+      color:#62ff9e;
+    }
+
+    .nav {
+      padding:20px;
+      border-bottom:1px solid rgba(98,255,158,0.2);
+      text-align:center;
+    }
+
+    .nav a {
+      margin:0 15px;
+      text-decoration:none;
+      color:#62ff9e;
+      font-weight:bold;
+      letter-spacing:1px;
+    }
+
+    h1 {
+      text-align:center;
+      margin-top:40px;
+      font-size:40px;
+    }
+
+    .container {
+      max-width:1000px;
+      margin:40px auto;
+      padding:20px;
+    }
+
+    .card {
+      border:1px solid rgba(98,255,158,0.3);
+      padding:25px;
+      margin-bottom:30px;
+    }
+
+    .card h2 {
+      margin-bottom:10px;
+    }
+
+    .section {
+      margin-top:15px;
+    }
+
+    .section-title {
+      font-weight:bold;
+      margin-bottom:5px;
+      color:#9effc7;
+    }
+
+    ul {
+      padding-left:20px;
+      line-height:1.6;
+    }
+
+    .highlight {
+      font-size:24px;
+      font-weight:bold;
+    }
   </style>
 </head>
 
 <body>
 
-<nav>
-  <a href="index.html">Home</a>
-  <a href="playbook.html">Playbook</a>
-  <a href="journal.html">Journal</a>
-</nav>
+<div class="nav">
+  <a href="index.html">HOME</a>
+  <a href="playbook.html">PLAYBOOK</a>
+  <a href="journal.html">JOURNAL</a>
+</div>
 
 <h1>PLAYBOOK</h1>
 
-<h2>SWEEP AND REAP</h2>
-<p>Asia sweep model with IFVG / CISD confirmation.</p>
+<div class="container">
 
-<h2>MATRIX</h2>
-<p>SMT divergence model between NQ and ES.</p>
+  <!-- SWEEP AND REAP -->
+  <div class="card">
+    <h2>SWEEP AND REAP</h2>
+    <p>Asia Sweep Model — discretionary setup with mechanical risk management</p>
+
+    <div class="section">
+      <div class="section-title">Session</div>
+      <ul>
+        <li>London Session (3:00 – 5:30 NY time)</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Setup</div>
+      <ul>
+        <li>Asia High / Low sweep</li>
+        <li>London ideally opens near Asia levels</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Entry</div>
+      <ul>
+        <li>IFVG or CISD confirmation</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Risk</div>
+      <div class="highlight">2R Target</div>
+      <ul>
+        <li>Never extend target</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Management</div>
+      <ul>
+        <li>Move to BE after +1.5R</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MATRIX -->
+  <div class="card">
+    <h2>MATRIX</h2>
+    <p>SMT Model — discretionary setup with mechanical risk management</p>
+
+    <div class="section">
+      <div class="section-title">Session</div>
+      <ul>
+        <li>08:00 – 11:00 NY time</li>
+        <li>Best around 09:30</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Setup</div>
+      <ul>
+        <li>SMT divergence between NQ and ES</li>
+        <li>At highs / lows</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Execution</div>
+      <ul>
+        <li>Short → asset making lower high</li>
+        <li>Long → asset making higher low</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Risk</div>
+      <div class="highlight">1.5R Target</div>
+      <ul>
+        <li>Stop at SMT high / low</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Management</div>
+      <ul>
+        <li>Move to BE after +1R</li>
+        <li>Exit on counter SMT signal</li>
+      </ul>
+    </div>
+
+  </div>
+
+</div>
 
 </body>
 </html>
