@@ -104,6 +104,7 @@
 
     <form id="form">
       <input id="date" type="date">
+      <input id="entry_time" type="time">
 
       <select id="play">
         <option>Sweep and Reap</option>
@@ -170,6 +171,7 @@
       <div class="stat">Total PnL: <span id="totalPnl">$0</span></div>
       <div class="stat">Profit Factor: <span id="profitFactor">0</span></div>
       <div class="stat">Max $ Drawdown: <span id="maxDrawdown">$0</span></div>
+      <div class="stat">Expectancy: <span id="expectancy">$0</span></div>
     </div>
   </div>
 
@@ -279,6 +281,7 @@ form.addEventListener("submit", async (e)=>{
 
   const trade = {
     trade_date: document.getElementById("date").value,
+    entry_time: document.getElementById("entry_time").value || null,
     play: document.getElementById("play").value,
     market: document.getElementById("market").value,
     quality: document.getElementById("quality").value,
@@ -409,7 +412,7 @@ function showGalleryTrade(){
 
   galleryInfo.innerHTML = `
     ${galleryIndex + 1} / ${galleryTrades.length}<br>
-    ${trade.trade_date} | ${trade.play} | ${trade.market} | ${trade.status} | ${trade.quality || "No Tag"} | ${trade.result_r}R | $${Number(trade.pnl || 0).toFixed(2)}<br>
+    ${trade.trade_date} ${trade.entry_time || ""} | ${trade.play} | ${trade.market} | ${trade.status} | ${trade.quality || "No Tag"} | ${trade.result_r}R | $${Number(trade.pnl || 0).toFixed(2)}<br>
     <a href="${trade.image_url}" target="_blank">Open Chart</a>
   `;
 }
@@ -418,7 +421,8 @@ async function load(){
   const { data, error } = await client
     .from("trades")
     .select("*")
-    .order("trade_date", { ascending: true });
+    .order("trade_date", { ascending: true })
+    .order("entry_time", { ascending: true });
 
   if(error){
     statusMsg.innerText = error.message;
@@ -456,6 +460,7 @@ function updateStats(data){
   let totalR = data.reduce((sum,t)=>sum + Number(t.result_r || 0),0);
 
   let totalPnl = data.reduce((sum,t)=>sum + Number(t.pnl || 0),0);
+
   let grossProfit = data
     .filter(t => Number(t.pnl || 0) > 0)
     .reduce((sum,t)=>sum + Number(t.pnl || 0),0);
@@ -468,12 +473,17 @@ function updateStats(data){
 
   let profitFactor = grossLoss ? grossProfit / grossLoss : (grossProfit > 0 ? Infinity : 0);
   let winrate = total ? ((wins.length / total) * 100).toFixed(1) : 0;
+  let expectancy = total ? totalPnl / total : 0;
 
   let equity = 0;
   let peak = 0;
   let maxDrawdown = 0;
 
-  const sorted = [...data].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
+  const sorted = [...data].sort((a,b)=> {
+    const dateA = new Date(`${a.trade_date}T${a.entry_time || "00:00"}`);
+    const dateB = new Date(`${b.trade_date}T${b.entry_time || "00:00"}`);
+    return dateA - dateB;
+  });
 
   sorted.forEach(t=>{
     equity += Number(t.pnl || 0);
@@ -488,6 +498,7 @@ function updateStats(data){
   document.getElementById("totalPnl").innerText = "$" + totalPnl.toFixed(2);
   document.getElementById("profitFactor").innerText = profitFactor === Infinity ? "∞" : profitFactor.toFixed(2);
   document.getElementById("maxDrawdown").innerText = "$" + maxDrawdown.toFixed(2);
+  document.getElementById("expectancy").innerText = "$" + expectancy.toFixed(2);
 }
 
 function updateList(data){
@@ -497,7 +508,7 @@ function updateList(data){
   data.forEach(t=>{
     const li = document.createElement("li");
     li.innerHTML = `
-      ${t.trade_date} | ${t.play} | ${t.market} | ${t.status} | ${t.quality || "No Tag"} | ${t.result_r}R | $${Number(t.pnl || 0).toFixed(2)} |
+      ${t.trade_date} ${t.entry_time || ""} | ${t.play} | ${t.market} | ${t.status} | ${t.quality || "No Tag"} | ${t.result_r}R | $${Number(t.pnl || 0).toFixed(2)} |
       <a href="${t.image_url}" target="_blank">Chart</a>
     `;
     list.appendChild(li);
@@ -505,7 +516,11 @@ function updateList(data){
 }
 
 function drawOverallChart(trades){
-  const sorted = [...trades].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
+  const sorted = [...trades].sort((a,b)=> {
+    const dateA = new Date(`${a.trade_date}T${a.entry_time || "00:00"}`);
+    const dateB = new Date(`${b.trade_date}T${b.entry_time || "00:00"}`);
+    return dateA - dateB;
+  });
 
   let equity = 0;
   const labels = [];
@@ -513,7 +528,7 @@ function drawOverallChart(trades){
 
   sorted.forEach(t=>{
     equity += Number(t.result_r || 0);
-    labels.push(t.trade_date);
+    labels.push(`${t.trade_date} ${t.entry_time || ""}`);
     data.push(equity);
   });
 
@@ -545,7 +560,11 @@ function drawOverallChart(trades){
 }
 
 function drawSeparatePlayChart(trades){
-  const sorted = [...trades].sort((a,b)=> new Date(a.trade_date) - new Date(b.trade_date));
+  const sorted = [...trades].sort((a,b)=> {
+    const dateA = new Date(`${a.trade_date}T${a.entry_time || "00:00"}`);
+    const dateB = new Date(`${b.trade_date}T${b.entry_time || "00:00"}`);
+    return dateA - dateB;
+  });
 
   let sweepEquity = 0;
   let matrixEquity = 0;
@@ -555,7 +574,7 @@ function drawSeparatePlayChart(trades){
   const matrixData = [];
 
   sorted.forEach(t=>{
-    labels.push(t.trade_date);
+    labels.push(`${t.trade_date} ${t.entry_time || ""}`);
 
     if(t.play === "Sweep and Reap"){
       sweepEquity += Number(t.result_r || 0);
