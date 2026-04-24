@@ -12,10 +12,25 @@
     h1 { text-align:center; margin-top:30px; }
     .container { max-width:1000px; margin:30px auto; padding:20px; }
     .card { border:1px solid rgba(98,255,158,0.3); padding:20px; margin-bottom:25px; }
-    input, select {
+
+    label {
+      display:block;
+      margin-top:10px;
+      margin-bottom:3px;
+      font-size:14px;
+      opacity:0.8;
+    }
+
+    input, select, textarea {
       width:100%; padding:10px; margin:5px 0; background:#000;
       border:1px solid rgba(98,255,158,0.3); color:#62ff9e;
     }
+
+    textarea {
+      min-height:80px;
+      resize:vertical;
+    }
+
     button {
       margin-top:10px; padding:12px; width:100%; background:#62ff9e;
       border:none; color:#030604; font-weight:bold; cursor:pointer;
@@ -24,7 +39,8 @@
     .stats { display:flex; justify-content:space-between; flex-wrap:wrap; }
     .stat { width:30%; margin-bottom:15px; }
     ul { padding-left:20px; }
-    li { margin-bottom:5px; }
+    li { margin-bottom:10px; }
+    small { color:rgba(98,255,158,0.75); }
     a { color:#62ff9e; }
 
     #galleryOverlay {
@@ -103,34 +119,49 @@
     <h2>Add Trade</h2>
 
     <form id="form">
+      <label>Date</label>
       <input id="date" type="date">
+
+      <label>Entry Time</label>
       <input id="entry_time" type="time">
 
+      <label>Play</label>
       <select id="play">
         <option>Sweep and Reap</option>
         <option>Matrix</option>
       </select>
 
+      <label>Instrument</label>
       <select id="market">
         <option>ES</option>
         <option>NQ</option>
       </select>
 
+      <label>Trade Quality</label>
       <select id="quality">
         <option>A+</option>
         <option>Valid</option>
         <option>Missing / Mistake</option>
       </select>
 
+      <label>Result</label>
       <select id="status">
         <option>Win</option>
         <option>Loss</option>
         <option>BE</option>
       </select>
 
-      <input id="r" placeholder="Result (R)">
-      <input id="pnl" placeholder="$ Win / Loss e.g. 150 or -75">
-      <input id="link" placeholder="TradingView Snapshot Link">
+      <label>Result (R)</label>
+      <input id="r" placeholder="e.g. 2 or -1">
+
+      <label>PnL ($)</label>
+      <input id="pnl" placeholder="e.g. 150 or -75">
+
+      <label>TradingView Snapshot</label>
+      <input id="link" placeholder="Paste TradingView snapshot link">
+
+      <label>Trade Notes</label>
+      <textarea id="notes" placeholder="What happened? Execution notes, mistakes, emotions, context..."></textarea>
 
       <button type="submit">Save Trade</button>
     </form>
@@ -289,7 +320,8 @@ form.addEventListener("submit", async (e)=>{
     status: document.getElementById("status").value,
     result_r: Number(document.getElementById("r").value || 0),
     pnl: Number(document.getElementById("pnl").value || 0),
-    image_url: document.getElementById("link").value
+    image_url: document.getElementById("link").value,
+    notes: document.getElementById("notes").value
   };
 
   const { error } = await client.from("trades").insert([trade]);
@@ -413,6 +445,7 @@ function showGalleryTrade(){
   galleryInfo.innerHTML = `
     ${galleryIndex + 1} / ${galleryTrades.length}<br>
     ${trade.trade_date} ${trade.entry_time || ""} | ${trade.play} | ${trade.market} | ${trade.status} | ${trade.quality || "No Tag"} | ${trade.result_r}R | $${Number(trade.pnl || 0).toFixed(2)}<br>
+    ${trade.notes ? `<br><strong>Notes:</strong> ${trade.notes}<br>` : ""}
     <a href="${trade.image_url}" target="_blank">Open Chart</a>
   `;
 }
@@ -510,6 +543,7 @@ function updateList(data){
     li.innerHTML = `
       ${t.trade_date} ${t.entry_time || ""} | ${t.play} | ${t.market} | ${t.status} | ${t.quality || "No Tag"} | ${t.result_r}R | $${Number(t.pnl || 0).toFixed(2)} |
       <a href="${t.image_url}" target="_blank">Chart</a>
+      ${t.notes ? `<br><small><strong>Notes:</strong> ${t.notes}</small>` : ""}
     `;
     list.appendChild(li);
   });
