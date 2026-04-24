@@ -43,6 +43,10 @@
     small { color:rgba(98,255,158,0.75); }
     a { color:#62ff9e; }
 
+    #beReasonWrap {
+      display:none;
+    }
+
     #galleryOverlay {
       display:none;
       position:fixed;
@@ -150,6 +154,15 @@
         <option>Loss</option>
         <option>BE</option>
       </select>
+
+      <div id="beReasonWrap">
+        <label>BE Reason</label>
+        <select id="be_reason">
+          <option value="+R reached">+R reached</option>
+          <option value="Counter setup developed">Counter setup developed</option>
+          <option value="Major relative strength divergence developed">Major relative strength divergence developed</option>
+        </select>
+      </div>
 
       <label>Result (R)</label>
       <input id="r" placeholder="e.g. 2 or -1">
@@ -282,6 +295,8 @@ const filterPlay = document.getElementById("filterPlay");
 const filterMarket = document.getElementById("filterMarket");
 const filterQuality = document.getElementById("filterQuality");
 const clearBtn = document.getElementById("clearBtn");
+const statusSelect = document.getElementById("status");
+const beReasonWrap = document.getElementById("beReasonWrap");
 
 const openGalleryBtn = document.getElementById("openGalleryBtn");
 const closeGalleryBtn = document.getElementById("closeGalleryBtn");
@@ -305,6 +320,16 @@ function setTodayDate(){
   document.getElementById("date").value = today;
 }
 
+function toggleBEReason(){
+  if(statusSelect.value === "BE"){
+    beReasonWrap.style.display = "block";
+  } else {
+    beReasonWrap.style.display = "none";
+  }
+}
+
+statusSelect.addEventListener("change", toggleBEReason);
+
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
 
@@ -318,6 +343,7 @@ form.addEventListener("submit", async (e)=>{
     quality: document.getElementById("quality").value,
     direction: "Long",
     status: document.getElementById("status").value,
+    be_reason: document.getElementById("status").value === "BE" ? document.getElementById("be_reason").value : null,
     result_r: Number(document.getElementById("r").value || 0),
     pnl: Number(document.getElementById("pnl").value || 0),
     image_url: document.getElementById("link").value,
@@ -334,6 +360,7 @@ form.addEventListener("submit", async (e)=>{
   statusMsg.innerText = "Trade saved";
   form.reset();
   setTodayDate();
+  toggleBEReason();
   load();
 });
 
@@ -444,7 +471,7 @@ function showGalleryTrade(){
 
   galleryInfo.innerHTML = `
     ${galleryIndex + 1} / ${galleryTrades.length}<br>
-    ${trade.trade_date} ${trade.entry_time || ""} | ${trade.play} | ${trade.market} | ${trade.status} | ${trade.quality || "No Tag"} | ${trade.result_r}R | $${Number(trade.pnl || 0).toFixed(2)}<br>
+    ${trade.trade_date} ${trade.entry_time || ""} | ${trade.play} | ${trade.market} | ${trade.status} ${trade.be_reason ? `(${trade.be_reason})` : ""} | ${trade.quality || "No Tag"} | ${trade.result_r}R | $${Number(trade.pnl || 0).toFixed(2)}<br>
     ${trade.notes ? `<br><strong>Notes:</strong> ${trade.notes}<br>` : ""}
     <a href="${trade.image_url}" target="_blank">Open Chart</a>
   `;
@@ -541,7 +568,7 @@ function updateList(data){
   data.forEach(t=>{
     const li = document.createElement("li");
     li.innerHTML = `
-      ${t.trade_date} ${t.entry_time || ""} | ${t.play} | ${t.market} | ${t.status} | ${t.quality || "No Tag"} | ${t.result_r}R | $${Number(t.pnl || 0).toFixed(2)} |
+      ${t.trade_date} ${t.entry_time || ""} | ${t.play} | ${t.market} | ${t.status} ${t.be_reason ? `(${t.be_reason})` : ""} | ${t.quality || "No Tag"} | ${t.result_r}R | $${Number(t.pnl || 0).toFixed(2)} |
       <a href="${t.image_url}" target="_blank">Chart</a>
       ${t.notes ? `<br><small><strong>Notes:</strong> ${t.notes}</small>` : ""}
     `;
@@ -659,6 +686,7 @@ function drawSeparatePlayChart(trades){
 }
 
 setTodayDate();
+toggleBEReason();
 load();
 </script>
 
