@@ -1,24 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade With Quinn - Trading Playbook</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#030604;--text:#e7eee9;--muted:#9ba7a0;--green:#62ff9e;--line:rgba(98,255,158,.28);--line2:rgba(98,255,158,.55)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--text);background:radial-gradient(circle at top,rgba(0,255,140,.12),transparent 35%),linear-gradient(rgba(0,255,140,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,140,.04) 1px,transparent 1px),var(--bg);background-size:auto,36px 36px,36px 36px,auto}
+.container{width:min(1200px,calc(100% - 32px));margin:auto}.topbar{position:sticky;top:0;z-index:10;background:rgba(3,6,4,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.topbar-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;padding:18px 0}
+a{color:inherit;text-decoration:none}.nav{display:flex;gap:10px;flex-wrap:wrap}.nav a,.btn{border:1px solid var(--line);border-radius:16px;padding:11px 14px;color:#c7ffd8;background:rgba(0,0,0,.45);text-transform:uppercase;font-size:12px;letter-spacing:.1em;font-weight:800}.nav a:hover,.btn:hover{border-color:var(--line2);background:rgba(98,255,158,.08)}
+.eyebrow{color:var(--green);text-transform:uppercase;letter-spacing:.32em;font-size:12px;margin:0 0 10px}.title,h2{margin:0;text-transform:uppercase;color:#baffd4;font-weight:900}.title{font-size:clamp(32px,6vw,64px);line-height:.95}h2{font-size:clamp(30px,5vw,52px);line-height:.95}h3{margin:0 0 12px;text-transform:uppercase;color:#baffd4;font-size:19px}.subtext{color:var(--muted);line-height:1.7;max-width:850px}
+.card{border:1px solid var(--line);border-radius:26px;background:rgba(10,15,11,.9);box-shadow:0 0 0 1px rgba(98,255,158,.25),0 0 30px rgba(0,255,140,.08);padding:26px;margin:24px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.section-card,.stat-card{border:1px solid var(--line);border-radius:20px;background:rgba(0,0,0,.45);padding:18px}.section-card:hover,.stat-card:hover{border-color:var(--line2)}
+ul{margin:0;padding:0;list-style:none}li{display:flex;gap:10px;line-height:1.75;margin-top:8px}.dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:10px;flex:0 0 auto}.highlight{color:var(--green);font-size:32px;font-weight:900}
+label{display:block;color:#baffd4;text-transform:uppercase;letter-spacing:.16em;font-size:12px;margin-bottom:8px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.55);color:var(--text);padding:13px 14px}textarea{min-height:110px;resize:vertical}.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:24px}.full{grid-column:1/-1}.btn{cursor:pointer;background:var(--green);color:#041208}.btn.secondary{background:rgba(98,255,158,.06);color:#c7ffd8}.status{color:var(--muted);margin-top:12px}.stat-value{color:var(--green);font-size:34px;font-weight:900;margin-top:8px}
+table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border-bottom:1px solid rgba(98,255,158,.16);padding:12px;text-align:left;font-size:14px}th{color:#baffd4;text-transform:uppercase;letter-spacing:.08em;font-size:12px}footer{text-align:center;color:#75837b;text-transform:uppercase;letter-spacing:.15em;font-size:13px;padding:30px 0 50px}
+@media(max-width:900px){.grid,.form-grid{grid-template-columns:1fr}.card{padding:20px}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="container topbar-inner"><div><p class="eyebrow">Trade With Quinn</p><h1 class="title">Trading Playbook</h1><p class="subtext">Dark matrix playbook with live trading journal stats.</p></div><nav class="nav"><a href="#sweep">Sweep and Reap</a><a href="#matrix">Matrix</a><a href="#journal">Journal</a><a href="#stats">Stats</a></nav></div></header>
+<main class="container">
+<section class="card"><p class="eyebrow">Core Identity</p><h2>System First.<br>Emotion Last.</h2><p class="subtext">Add trades, paste TradingView chart links, and track performance by R-multiple.</p></section>
+
+<section id="sweep" class="card"><p class="eyebrow">Play 1</p><h2>Sweep and Reap</h2><p class="subtext">Asia Sweep Model — discretionary setup with mechanical risk management.</p><div class="grid">
+<div class="section-card"><h3>Session Rules</h3><ul><li><span class="dot"></span>London Session</li><li><span class="dot"></span>3:00 – 5:30 NY time</li></ul></div>
+<div class="section-card"><h3>Core Setup</h3><ul><li><span class="dot"></span>Asia High / Low sweep</li><li><span class="dot"></span>Clear intent after the sweep</li></ul></div>
+<div class="section-card"><h3>Entry Model</h3><ul><li><span class="dot"></span>IFVG or CISD confirmation</li><li><span class="dot"></span>No guessing</li></ul></div>
+<div class="section-card"><h3>Risk Management</h3><p class="highlight">2R</p><ul><li><span class="dot"></span>Target 2R only</li><li><span class="dot"></span>Never extend target</li></ul></div>
+<div class="section-card"><h3>Trade Management</h3><ul><li><span class="dot"></span>Move BE after +1.5R</li><li><span class="dot"></span>No early BE</li></ul></div>
+<div class="section-card"><h3>Hard Rules</h3><ul><li><span class="dot"></span>No sweep = no trade</li><li><span class="dot"></span>No confirmation = no entry</li></ul></div>
+</div></section>
+
+<section id="matrix" class="card"><p class="eyebrow">Play 2</p><h2>Matrix</h2><p class="subtext">SMT Model — discretionary setup with mechanical risk management.</p><div class="grid">
+<div class="section-card"><h3>Session Rules</h3><ul><li><span class="dot"></span>08:00 – 11:00 NY time</li><li><span class="dot"></span>Best around 09:30</li></ul></div>
+<div class="section-card"><h3>Core Setup</h3><ul><li><span class="dot"></span>SMT divergence between NQ and ES</li><li><span class="dot"></span>At highs / lows</li></ul></div>
+<div class="section-card"><h3>Execution Rule</h3><ul><li><span class="dot"></span>Short: execute on asset making lower high</li><li><span class="dot"></span>Long: execute on asset making higher low</li></ul></div>
+<div class="section-card"><h3>Risk Management</h3><p class="highlight">1.5R</p><ul><li><span class="dot"></span>Stop at SMT high / low</li></ul></div>
+<div class="section-card"><h3>Trade Management</h3><ul><li><span class="dot"></span>Move stop to BE after +1R</li><li><span class="dot"></span>Exit on counter SMT signal</li></ul></div>
+<div class="section-card"><h3>Hard Rules</h3><ul><li><span class="dot"></span>No divergence = no trade</li><li><span class="dot"></span>Avoid FOMC / NFP</li></ul></div>
+</div></section>
+
+<section id="journal" class="card"><p class="eyebrow">Trading Journal</p><h2>Add Trade</h2>
+<form id="tradeForm" class="form-grid">
+<div><label>Date</label><input id="trade_date" type="date" required></div>
+<div><label>Play</label><select id="play"><option>Sweep and Reap</option><option>Matrix</option></select></div>
+<div><label>Market</label><select id="market"><option>ES</option><option>NQ</option></select></div>
+<div><label>Direction</label><select id="direction"><option>Long</option><option>Short</option></select></div>
+<div><label>Result</label><select id="status"><option>Win</option><option>Loss</option><option>BE</option><option>Open</option></select></div>
+<div><label>Result R</label><input id="result_r" type="number" step="0.01" value="0" required></div>
+<div><label>Entry</label><input id="entry_price" type="number" step="0.01"></div>
+<div><label>Stop</label><input id="stop_price" type="number" step="0.01"></div>
+<div><label>Target</label><input id="target_price" type="number" step="0.01"></div>
+<div><label>P&L</label><input id="pnl" type="number" step="0.01" value="0"></div>
+<div><label>TradingView Chart Link</label><input id="chart_link" type="url" placeholder="Paste TradingView chart link here"></div>
+<div class="full"><label>Notes</label><textarea id="notes" placeholder="What happened? Was it A+? Any mistakes?"></textarea></div>
+<div class="full"><button class="btn" type="submit">Save Trade</button> <button class="btn secondary" type="button" id="refreshBtn">Refresh Stats</button><p class="status" id="statusMessage">Ready.</p></div>
+</form></section>
+
+<section id="stats" class="card"><p class="eyebrow">Performance</p><h2>Live Stats</h2><div class="grid">
+<div class="stat-card"><h3>Total Trades</h3><div class="stat-value" id="totalTrades">0</div></div>
+<div class="stat-card"><h3>Win Rate</h3><div class="stat-value" id="winRate">0%</div></div>
+<div class="stat-card"><h3>Profit Factor</h3><div class="stat-value" id="profitFactor">0</div></div>
+<div class="stat-card"><h3>Total R</h3><div class="stat-value" id="totalR">0</div></div>
+<div class="stat-card"><h3>Average R</h3><div class="stat-value" id="avgR">0</div></div>
+<div class="stat-card"><h3>Best Play</h3><div class="stat-value" id="bestPlay">-</div></div>
+</div><h3 style="margin-top:28px;">Recent Trades</h3><div style="overflow:auto"><table><thead><tr><th>Date</th><th>Play</th><th>Market</th><th>Dir</th><th>Status</th><th>R</th><th>P&L</th><th>Chart</th><th>Notes</th></tr></thead><tbody id="tradesTable"></tbody></table></div></section>
+<footer>Trade With Quinn — Trading Playbook</footer></main>
+
 <script>
 const SUPABASE_URL = "https://ebdyavzqraejwrvaclfg.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg";
 
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 const form = document.getElementById("tradeForm");
 const statusMessage = document.getElementById("statusMessage");
-
 document.getElementById("trade_date").valueAsDate = new Date();
 
-function setStatus(message){
-  statusMessage.textContent = message;
-}
+function setStatus(message){ statusMessage.textContent = message; }
 
-form.addEventListener("submit", async (event)=>{
+form.addEventListener("submit", async function(event){
   event.preventDefault();
-
   try{
     setStatus("Saving trade...");
-
     const trade = {
       trade_date: document.getElementById("trade_date").value,
       play: document.getElementById("play").value,
@@ -26,99 +90,76 @@ form.addEventListener("submit", async (event)=>{
       direction: document.getElementById("direction").value,
       status: document.getElementById("status").value,
       result_r: Number(document.getElementById("result_r").value || 0),
-      entry_price: document.getElementById("entry_price").value || null,
-      stop_price: document.getElementById("stop_price").value || null,
-      target_price: document.getElementById("target_price").value || null,
+      entry_price: document.getElementById("entry_price").value ? Number(document.getElementById("entry_price").value) : null,
+      stop_price: document.getElementById("stop_price").value ? Number(document.getElementById("stop_price").value) : null,
+      target_price: document.getElementById("target_price").value ? Number(document.getElementById("target_price").value) : null,
       pnl: Number(document.getElementById("pnl").value || 0),
       notes: document.getElementById("notes").value,
       image_url: document.getElementById("chart_link").value || null
     };
-
-    const { error } = await client.from("trades").insert([trade]);
-
-    if(error){
-      console.error(error);
-      setStatus("Error: " + error.message);
-      return;
-    }
-
-    setStatus("Trade saved.");
-
+    const result = await client.from("trades").insert([trade]);
+    if(result.error){ setStatus("Error: " + result.error.message); return; }
     form.reset();
     document.getElementById("trade_date").valueAsDate = new Date();
-
-    loadTrades();
-
-  } catch(err){
-    console.error(err);
-    setStatus("Error: " + err.message);
-  }
+    setStatus("Trade saved.");
+    await loadTrades();
+  }catch(err){ setStatus("Error: " + err.message); }
 });
 
+document.getElementById("refreshBtn").addEventListener("click", loadTrades);
+
 async function loadTrades(){
-  const { data, error } = await client
-    .from("trades")
-    .select("*")
-    .order("trade_date", { ascending: false });
-
-  if(error){
-    console.error(error);
-    return;
-  }
-
-  renderStats(data);
-  renderTable(data);
+  const result = await client.from("trades").select("*").order("trade_date",{ascending:false}).order("created_at",{ascending:false});
+  if(result.error){ setStatus("Error loading trades: " + result.error.message); return; }
+  const trades = result.data || [];
+  renderStats(trades);
+  renderTable(trades);
 }
 
 function renderStats(trades){
-  const closed = trades.filter(t => t.status !== "Open");
-
-  const wins = closed.filter(t => t.result_r > 0);
-  const losses = closed.filter(t => t.result_r < 0);
-
+  const closed = trades.filter(function(t){ return t.status !== "Open"; });
+  const wins = closed.filter(function(t){ return Number(t.result_r) > 0; });
+  const losses = closed.filter(function(t){ return Number(t.result_r) < 0; });
   const total = closed.length;
-  const totalR = closed.reduce((sum, t) => sum + Number(t.result_r || 0), 0);
-
+  const totalR = closed.reduce(function(sum,t){ return sum + Number(t.result_r || 0); },0);
+  const grossProfit = wins.reduce(function(sum,t){ return sum + Number(t.result_r || 0); },0);
+  const grossLoss = Math.abs(losses.reduce(function(sum,t){ return sum + Number(t.result_r || 0); },0));
   const winRate = total ? (wins.length / total) * 100 : 0;
   const avgR = total ? totalR / total : 0;
-
-  const grossProfit = wins.reduce((sum, t) => sum + t.result_r, 0);
-  const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.result_r, 0));
-
-  const profitFactor = grossLoss ? grossProfit / grossLoss : 0;
-
+  const profitFactor = grossLoss ? grossProfit / grossLoss : (grossProfit > 0 ? Infinity : 0);
+  const byPlay = {};
+  closed.forEach(function(t){ byPlay[t.play] = (byPlay[t.play] || 0) + Number(t.result_r || 0); });
+  let bestPlay = "-", bestValue = -Infinity;
+  Object.entries(byPlay).forEach(function(entry){ if(entry[1] > bestValue){ bestPlay = entry[0]; bestValue = entry[1]; } });
   document.getElementById("totalTrades").textContent = total;
   document.getElementById("winRate").textContent = winRate.toFixed(1) + "%";
+  document.getElementById("profitFactor").textContent = profitFactor === Infinity ? "∞" : profitFactor.toFixed(2);
   document.getElementById("totalR").textContent = totalR.toFixed(2);
   document.getElementById("avgR").textContent = avgR.toFixed(2);
-  document.getElementById("profitFactor").textContent = profitFactor.toFixed(2);
+  document.getElementById("bestPlay").textContent = bestPlay;
 }
 
 function renderTable(trades){
   const tbody = document.getElementById("tradesTable");
   tbody.innerHTML = "";
-
-  trades.slice(0, 50).forEach(t => {
+  trades.slice(0,50).forEach(function(t){
     const row = document.createElement("tr");
-
-    row.innerHTML = `
-      <td>${t.trade_date || ""}</td>
-      <td>${t.play || ""}</td>
-      <td>${t.market || ""}</td>
-      <td>${t.direction || ""}</td>
-      <td>${t.status || ""}</td>
-      <td>${Number(t.result_r || 0).toFixed(2)}</td>
-      <td>${Number(t.pnl || 0).toFixed(2)}</td>
-      <td>${t.image_url ? `<a href="${t.image_url}" target="_blank">Open Chart</a>` : ""}</td>
-      <td>${t.notes || ""}</td>
-    `;
-
+    const chart = t.image_url ? '<a href="' + t.image_url + '" target="_blank">Open Chart</a>' : "";
+    row.innerHTML =
+      "<td>" + (t.trade_date || "") + "</td>" +
+      "<td>" + (t.play || "") + "</td>" +
+      "<td>" + (t.market || "") + "</td>" +
+      "<td>" + (t.direction || "") + "</td>" +
+      "<td>" + (t.status || "") + "</td>" +
+      "<td>" + Number(t.result_r || 0).toFixed(2) + "</td>" +
+      "<td>" + Number(t.pnl || 0).toFixed(2) + "</td>" +
+      "<td>" + chart + "</td>" +
+      "<td>" + (t.notes ? String(t.notes).substring(0,80) : "") + "</td>";
     tbody.appendChild(row);
   });
 }
 
 loadTrades();
-</script>
 </script>
 </body>
 </html>
