@@ -149,6 +149,12 @@
         <option>Missing / Mistake</option>
       </select>
 
+      <label>Entry Method</label>
+      <select id="entry_method">
+        <option>FVG</option>
+        <option>CISD</option>
+      </select>
+
       <label>Result</label>
       <select id="status">
         <option>Win</option>
@@ -343,6 +349,7 @@ form.addEventListener("submit", async (e)=>{
     play: document.getElementById("play").value,
     market: document.getElementById("market").value,
     quality: document.getElementById("quality").value,
+    entry_method: document.getElementById("entry_method").value,
     direction: "Long",
     status: document.getElementById("status").value,
     be_reason: document.getElementById("status").value === "BE" ? document.getElementById("be_reason").value : null,
@@ -474,7 +481,7 @@ function showGalleryTrade(){
 
   galleryInfo.innerHTML = `
     ${galleryIndex + 1} / ${galleryTrades.length}<br>
-    ${trade.trade_date} ${trade.entry_time || ""} | ${trade.play} | ${trade.market} | ${trade.status} ${trade.be_reason ? `(${trade.be_reason})` : ""} | ${trade.quality || "No Tag"} | ${trade.result_r}R | $${Number(trade.pnl || 0).toFixed(2)}<br>
+    ${trade.trade_date} ${trade.entry_time || ""} | ${trade.play} | ${trade.market} | ${trade.entry_method || "N/A"} | ${trade.status} ${trade.be_reason ? `(${trade.be_reason})` : ""} | ${trade.quality || "No Tag"} | ${trade.result_r}R | $${Number(trade.pnl || 0).toFixed(2)}<br>
     ${trade.notes ? `<br><strong>Notes:</strong> ${trade.notes}<br>` : ""}
     <a href="${trade.image_url}" target="_blank">Open Chart</a>
   `;
@@ -570,7 +577,7 @@ function updateList(data){
   data.forEach(t=>{
     const li = document.createElement("li");
     li.innerHTML = `
-      ${t.trade_date} ${t.entry_time || ""} | ${t.play} | ${t.market} | ${t.status} ${t.be_reason ? `(${t.be_reason})` : ""} | ${t.quality || "No Tag"} | ${t.result_r}R | $${Number(t.pnl || 0).toFixed(2)} |
+      ${t.trade_date} ${t.entry_time || ""} | ${t.play} | ${t.market} | ${t.entry_method || "N/A"} | ${t.status} ${t.be_reason ? `(${t.be_reason})` : ""} | ${t.quality || "No Tag"} | ${t.result_r}R | $${Number(t.pnl || 0).toFixed(2)} |
       <a href="${t.image_url}" target="_blank">Chart</a>
       ${t.notes ? `<br><small><strong>Notes:</strong> ${t.notes}</small>` : ""}
     `;
