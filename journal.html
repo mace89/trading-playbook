@@ -5,78 +5,65 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    body { margin:0; font-family:Arial; background:#030604; color:#62ff9e; }
-    .nav { padding:20px; border-bottom:1px solid rgba(98,255,158,0.2); text-align:center; }
-    .nav a { margin:0 15px; text-decoration:none; color:#62ff9e; font-weight:bold; }
-    h1 { text-align:center; margin-top:30px; }
-    .container { max-width:1000px; margin:30px auto; padding:20px; }
-    .card { border:1px solid rgba(98,255,158,0.3); padding:20px; margin-bottom:25px; }
+<style>
+body { margin:0; font-family:Arial; background:#030604; color:#62ff9e; }
+.nav { padding:20px; border-bottom:1px solid rgba(98,255,158,0.2); text-align:center; }
+.nav a { margin:0 15px; text-decoration:none; color:#62ff9e; font-weight:bold; }
+h1 { text-align:center; margin-top:30px; }
+.container { max-width:1000px; margin:30px auto; padding:20px; }
+.card { border:1px solid rgba(98,255,158,0.3); padding:20px; margin-bottom:25px; }
 
-    label {
-      display:block;
-      margin-top:10px;
-      margin-bottom:3px;
-      font-size:14px;
-      opacity:0.8;
-    }
+label { display:block; margin-top:10px; font-size:14px; opacity:0.8; }
 
-    input, select, textarea {
-      width:100%; padding:10px; margin:5px 0; background:#000;
-      border:1px solid rgba(98,255,158,0.3); color:#62ff9e;
-    }
+input, select, textarea {
+  width:100%; padding:10px; margin:5px 0;
+  background:#000; border:1px solid rgba(98,255,158,0.3);
+  color:#62ff9e;
+}
 
-    textarea { min-height:80px; resize:vertical; }
+textarea { min-height:80px; }
 
-    button {
-      margin-top:10px; padding:12px; width:100%;
-      background:#62ff9e; border:none; color:#030604;
-      font-weight:bold; cursor:pointer;
-    }
+button {
+  margin-top:10px; padding:12px; width:100%;
+  background:#62ff9e; border:none;
+  color:#030604; font-weight:bold; cursor:pointer;
+}
 
-    .danger { background:#ff4d4d; color:#fff; }
-    .stats { display:flex; justify-content:space-between; flex-wrap:wrap; }
-    .stat { width:30%; margin-bottom:15px; }
-    ul { padding-left:20px; }
-    li { margin-bottom:10px; }
-    small { color:rgba(98,255,158,0.75); }
-    a { color:#62ff9e; }
+.danger { background:#ff4d4d; color:#fff; }
 
-    #beReasonWrap { display:none; }
+.stats { display:flex; flex-wrap:wrap; }
+.stat { width:30%; margin-bottom:10px; }
 
-    #galleryOverlay {
-      display:none; position:fixed; inset:0;
-      background:rgba(0,0,0,0.96);
-      z-index:9999; padding:20px;
-    }
+#beReasonWrap { display:none; }
 
-    .gallery-top {
-      display:flex; justify-content:space-between;
-      align-items:center; margin-bottom:15px;
-    }
+/* GALLERY */
+#galleryOverlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.95);
+  z-index:9999;
+  padding:20px;
+}
 
-    .gallery-controls {
-      display:flex; gap:10px; flex-wrap:wrap;
-      margin-bottom:15px;
-    }
+.gallery-image-wrap {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:70vh;
+}
 
-    .gallery-image-wrap {
-      display:flex; align-items:center;
-      justify-content:center; height:70vh;
-      border:1px solid rgba(98,255,158,0.3);
-      background:#000;
-    }
+#galleryImage {
+  max-width:100%;
+  max-height:100%;
+}
 
-    #galleryImage {
-      max-width:100%; max-height:100%;
-      object-fit:contain;
-    }
-
-    .close-btn {
-      background:#ff4d4d; color:white;
-      padding:10px 18px;
-    }
-  </style>
+.close-btn {
+  background:#ff4d4d;
+  color:white;
+  padding:10px 18px;
+}
+</style>
 </head>
 
 <body>
@@ -91,6 +78,7 @@
 
 <div class="container">
 
+<!-- ADD TRADE -->
 <div class="card">
 <h2>Add Trade</h2>
 
@@ -104,7 +92,7 @@
 
 <label>Play</label>
 <select id="play" required>
-<option value="" disabled selected>Select play...</option>
+<option value="" disabled selected>Select...</option>
 <option>Espresso</option>
 <option>ASR</option>
 <option>SR</option>
@@ -115,7 +103,7 @@
 
 <label>Instrument</label>
 <select id="market" required>
-<option value="" disabled selected>Select instrument...</option>
+<option value="" disabled selected>Select...</option>
 <option>NQ</option>
 <option>DAX</option>
 <option>YM</option>
@@ -123,14 +111,14 @@
 
 <label>Direction</label>
 <select id="direction" required>
-<option value="" disabled selected>Select direction...</option>
+<option value="" disabled selected>Select...</option>
 <option>Long</option>
 <option>Short</option>
 </select>
 
 <label>Trade Quality</label>
 <select id="quality" required>
-<option value="" disabled selected>Select quality...</option>
+<option value="" disabled selected>Select...</option>
 <option>A+</option>
 <option>Valid</option>
 <option>Missing / Mistake</option>
@@ -138,14 +126,14 @@
 
 <label>Rules Followed?</label>
 <select id="rule_followed" required>
-<option value="" disabled selected>Select yes or no...</option>
+<option value="" disabled selected>Select...</option>
 <option>Yes</option>
 <option>No</option>
 </select>
 
 <label>Result</label>
 <select id="status" required>
-<option value="" disabled selected>Select result...</option>
+<option value="" disabled selected>Select...</option>
 <option>Win</option>
 <option>Loss</option>
 <option>BE</option>
@@ -154,7 +142,7 @@
 <div id="beReasonWrap">
 <label>BE Reason</label>
 <select id="be_reason">
-<option value="" disabled selected>Select BE reason...</option>
+<option value="" disabled selected>Select...</option>
 <option>+R reached</option>
 <option>Counter setup developed</option>
 <option>Major relative strength divergence developed</option>
@@ -170,7 +158,7 @@
 <label>TradingView Snapshot</label>
 <input id="link">
 
-<label>Trade Notes</label>
+<label>Notes</label>
 <textarea id="notes"></textarea>
 
 <button type="submit">Save Trade</button>
@@ -179,11 +167,48 @@
 <p id="statusMsg">Ready</p>
 </div>
 
+<!-- STATS -->
+<div class="card">
+<h2>Stats</h2>
+<div class="stats">
+<div class="stat">Trades: <span id="trades">0</span></div>
+<div class="stat">Winrate: <span id="winrate">0%</span></div>
+<div class="stat">Total PnL: <span id="totalPnl">$0</span></div>
+</div>
+</div>
+
+<!-- GALLERY -->
+<div class="card">
+<h2>Trade Gallery</h2>
+<button id="openGalleryBtn">Open Gallery</button>
+</div>
+
+<!-- TRADES -->
 <div class="card">
 <h2>Trades</h2>
 <ul id="list"></ul>
 </div>
 
+<!-- CLEAR -->
+<div class="card">
+<h2>Danger Zone</h2>
+<button class="danger" id="clearBtn">Clear All Trade Data</button>
+</div>
+
+</div>
+
+<!-- GALLERY OVERLAY -->
+<div id="galleryOverlay">
+  <button class="close-btn" id="closeGalleryBtn">Close</button>
+
+  <div class="gallery-image-wrap">
+    <img id="galleryImage">
+  </div>
+
+  <div id="galleryInfo"></div>
+
+  <button id="prevGalleryBtn">Prev</button>
+  <button id="nextGalleryBtn">Next</button>
 </div>
 
 <script>
@@ -192,22 +217,16 @@ const client = supabase.createClient(
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg"
 );
 
-const form = document.getElementById("form");
-const statusMsg = document.getElementById("statusMsg");
-const statusSelect = document.getElementById("status");
-const beReasonWrap = document.getElementById("beReasonWrap");
+let tradesData = [];
+let galleryIndex = 0;
 
 function setToday(){
-document.getElementById("date").value =
-new Date().toISOString().split("T")[0];
+date.value = new Date().toISOString().split("T")[0];
 }
 
-function toggleBE(){
-beReasonWrap.style.display =
-statusSelect.value==="BE" ? "block":"none";
-}
-
-statusSelect.addEventListener("change",toggleBE);
+status.onchange = ()=>{
+beReasonWrap.style.display = status.value==="BE" ? "block":"none";
+};
 
 form.onsubmit = async e=>{
 e.preventDefault();
@@ -230,20 +249,70 @@ notes:notes.value
 
 form.reset();
 setToday();
-toggleBE();
 load();
 };
 
+clearBtn.onclick = async ()=>{
+if(!confirm("Delete ALL trades?")) return;
+await client.from("trades").delete().neq("id",0);
+load();
+};
+
+openGalleryBtn.onclick = ()=>{
+galleryOverlay.style.display="block";
+galleryIndex=0;
+showGallery();
+};
+
+closeGalleryBtn.onclick = ()=>{
+galleryOverlay.style.display="none";
+};
+
+prevGalleryBtn.onclick = ()=>{
+galleryIndex--;
+if(galleryIndex<0) galleryIndex=tradesData.length-1;
+showGallery();
+};
+
+nextGalleryBtn.onclick = ()=>{
+galleryIndex++;
+if(galleryIndex>=tradesData.length) galleryIndex=0;
+showGallery();
+};
+
+function showGallery(){
+let t = tradesData[galleryIndex];
+if(!t) return;
+
+galleryImage.src = t.image_url || "";
+galleryInfo.innerHTML = `
+${t.trade_date} | ${t.play} | ${t.market} | ${t.direction}<br>
+Rules: ${t.rule_followed} | ${t.status}<br>
+$${t.pnl}
+`;
+}
+
 async function load(){
 let {data}=await client.from("trades").select("*");
+tradesData=data||[];
+
 list.innerHTML="";
+
+let total=data.length;
+let wins=data.filter(t=>t.pnl>0);
+let totalPnl=data.reduce((a,b)=>a+(b.pnl||0),0);
+
+trades.innerText=total;
+winrate.innerText=(total?(wins.length/total*100).toFixed(1):0)+"%";
+totalPnl.innerText="$"+totalPnl.toFixed(2);
+
 data.forEach(t=>{
 let li=document.createElement("li");
 li.innerHTML=`
-${t.trade_date} ${t.entry_time||""} | 
-${t.play} | ${t.market} | ${t.direction} | 
-Rules: ${t.rule_followed} | 
-${t.status} ${t.be_reason?`(${t.be_reason})`:""} | 
+${t.trade_date} ${t.entry_time||""} |
+${t.play} | ${t.market} | ${t.direction} |
+Rules: ${t.rule_followed} |
+${t.status} ${t.be_reason?`(${t.be_reason})`:""} |
 $${t.pnl}
 `;
 list.appendChild(li);
