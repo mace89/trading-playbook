@@ -36,7 +36,6 @@ button {
 
 #beReasonWrap { display:none; }
 
-/* GALLERY */
 #galleryOverlay {
   display:none;
   position:fixed;
@@ -57,12 +56,6 @@ button {
   max-width:100%;
   max-height:100%;
 }
-
-.close-btn {
-  background:#ff4d4d;
-  color:white;
-  padding:10px 18px;
-}
 </style>
 </head>
 
@@ -78,7 +71,6 @@ button {
 
 <div class="container">
 
-<!-- ADD TRADE -->
 <div class="card">
 <h2>Add Trade</h2>
 
@@ -162,12 +154,12 @@ button {
 <textarea id="notes"></textarea>
 
 <button type="submit">Save Trade</button>
+
 </form>
 
 <p id="statusMsg">Ready</p>
 </div>
 
-<!-- STATS -->
 <div class="card">
 <h2>Stats</h2>
 <div class="stats">
@@ -177,19 +169,27 @@ button {
 </div>
 </div>
 
-<!-- GALLERY -->
+<div class="card">
+<h2>Equity Curve</h2>
+
+<select id="chartMode">
+<option value="overall">Overall</option>
+<option value="separate">Separate Plays</option>
+</select>
+
+<canvas id="equityChart"></canvas>
+</div>
+
 <div class="card">
 <h2>Trade Gallery</h2>
 <button id="openGalleryBtn">Open Gallery</button>
 </div>
 
-<!-- TRADES -->
 <div class="card">
 <h2>Trades</h2>
 <ul id="list"></ul>
 </div>
 
-<!-- CLEAR -->
 <div class="card">
 <h2>Danger Zone</h2>
 <button class="danger" id="clearBtn">Clear All Trade Data</button>
@@ -197,18 +197,17 @@ button {
 
 </div>
 
-<!-- GALLERY OVERLAY -->
 <div id="galleryOverlay">
-  <button class="close-btn" id="closeGalleryBtn">Close</button>
+<button id="closeGalleryBtn">Close</button>
 
-  <div class="gallery-image-wrap">
-    <img id="galleryImage">
-  </div>
+<div class="gallery-image-wrap">
+<img id="galleryImage">
+</div>
 
-  <div id="galleryInfo"></div>
+<div id="galleryInfo"></div>
 
-  <button id="prevGalleryBtn">Prev</button>
-  <button id="nextGalleryBtn">Next</button>
+<button id="prevGalleryBtn">Prev</button>
+<button id="nextGalleryBtn">Next</button>
 </div>
 
 <script>
@@ -218,17 +217,16 @@ const client = supabase.createClient(
 );
 
 let tradesData = [];
-let galleryIndex = 0;
+let equityChart=null;
+let index=0;
 
 function setToday(){
-date.value = new Date().toISOString().split("T")[0];
+date.value=new Date().toISOString().split("T")[0];
 }
 
-status.onchange = ()=>{
-beReasonWrap.style.display = status.value==="BE" ? "block":"none";
-};
+status.onchange=()=>{beReasonWrap.style.display=status.value==="BE"?"block":"none";};
 
-form.onsubmit = async e=>{
+form.onsubmit=async e=>{
 e.preventDefault();
 
 await client.from("trades").insert([{
@@ -240,7 +238,7 @@ direction:direction.value,
 quality:quality.value,
 rule_followed:rule_followed.value,
 status:status.value,
-be_reason: status.value==="BE"?be_reason.value:null,
+be_reason:status.value==="BE"?be_reason.value:null,
 result_r:Number(r.value||0),
 pnl:Number(pnl.value||0),
 image_url:link.value,
@@ -252,44 +250,81 @@ setToday();
 load();
 };
 
-clearBtn.onclick = async ()=>{
-if(!confirm("Delete ALL trades?")) return;
+clearBtn.onclick=async ()=>{
+if(!confirm("Delete all trades?"))return;
 await client.from("trades").delete().neq("id",0);
 load();
 };
 
-openGalleryBtn.onclick = ()=>{
+chartMode.onchange=draw;
+
+openGalleryBtn.onclick=()=>{
 galleryOverlay.style.display="block";
-galleryIndex=0;
+index=0;
 showGallery();
 };
 
-closeGalleryBtn.onclick = ()=>{
-galleryOverlay.style.display="none";
-};
+closeGalleryBtn.onclick=()=>galleryOverlay.style.display="none";
 
-prevGalleryBtn.onclick = ()=>{
-galleryIndex--;
-if(galleryIndex<0) galleryIndex=tradesData.length-1;
+prevGalleryBtn.onclick=()=>{
+index=(index-1+tradesData.length)%tradesData.length;
 showGallery();
 };
 
-nextGalleryBtn.onclick = ()=>{
-galleryIndex++;
-if(galleryIndex>=tradesData.length) galleryIndex=0;
+nextGalleryBtn.onclick=()=>{
+index=(index+1)%tradesData.length;
 showGallery();
 };
 
 function showGallery(){
-let t = tradesData[galleryIndex];
-if(!t) return;
+let t=tradesData[index];
+if(!t)return;
+galleryImage.src=t.image_url;
+galleryInfo.innerHTML=`${t.play} | ${t.market} | ${t.status} | $${t.pnl}`;
+}
 
-galleryImage.src = t.image_url || "";
-galleryInfo.innerHTML = `
-${t.trade_date} | ${t.play} | ${t.market} | ${t.direction}<br>
-Rules: ${t.rule_followed} | ${t.status}<br>
-$${t.pnl}
-`;
+function draw(){
+if(equityChart)equityChart.destroy();
+
+let sorted=[...tradesData].sort((a,b)=>new Date(a.trade_date)-new Date(b.trade_date));
+
+let labels=[],data=[],eq=0;
+
+if(chartMode.value==="overall"){
+sorted.forEach(t=>{
+eq+=Number(t.result_r||0);
+labels.push(t.trade_date);
+data.push(eq);
+});
+
+equityChart=new Chart(equityChartCtx,{
+type:"line",
+data:{labels,datasets:[{label:"Equity",data,borderColor:"#62ff9e"}]}
+});
+}else{
+
+let s=0,m=0;
+let sd=[],md=[];
+
+sorted.forEach(t=>{
+if(t.play==="Espresso")s+=Number(t.result_r||0);
+else m+=Number(t.result_r||0);
+
+labels.push(t.trade_date);
+sd.push(s);
+md.push(m);
+});
+
+equityChart=new Chart(equityChartCtx,{
+type:"line",
+data:{
+labels,
+datasets:[
+{label:"Espresso",data:sd,borderColor:"#62ff9e"},
+{label:"Other",data:md,borderColor:"#fff"}
+]}
+});
+}
 }
 
 async function load(){
@@ -308,16 +343,14 @@ totalPnl.innerText="$"+totalPnl.toFixed(2);
 
 data.forEach(t=>{
 let li=document.createElement("li");
-li.innerHTML=`
-${t.trade_date} ${t.entry_time||""} |
-${t.play} | ${t.market} | ${t.direction} |
-Rules: ${t.rule_followed} |
-${t.status} ${t.be_reason?`(${t.be_reason})`:""} |
-$${t.pnl}
-`;
+li.innerHTML=`${t.trade_date} | ${t.play} | ${t.market} | ${t.direction} | $${t.pnl}`;
 list.appendChild(li);
 });
+
+draw();
 }
+
+const equityChartCtx=document.getElementById("equityChart");
 
 setToday();
 load();
