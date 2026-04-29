@@ -13,16 +13,33 @@ h1 { text-align:center; margin-top:30px; }
 .container { max-width:1000px; margin:30px auto; padding:20px; }
 .card { border:1px solid rgba(98,255,158,0.3); padding:20px; margin-bottom:25px; }
 label { display:block; margin-top:10px; font-size:14px; opacity:0.8; }
-input, select, textarea { width:100%; padding:10px; margin:5px 0; background:#000; border:1px solid rgba(98,255,158,0.3); color:#62ff9e; }
+input, select, textarea {
+  width:100%; padding:10px; margin:5px 0;
+  background:#000; border:1px solid rgba(98,255,158,0.3);
+  color:#62ff9e;
+}
 textarea { min-height:80px; }
-button { margin-top:10px; padding:12px; width:100%; background:#62ff9e; border:none; color:#030604; font-weight:bold; cursor:pointer; }
+button {
+  margin-top:10px; padding:12px; width:100%;
+  background:#62ff9e; border:none;
+  color:#030604; font-weight:bold; cursor:pointer;
+}
 .danger { background:#ff4d4d; color:#fff; }
 .stats { display:flex; flex-wrap:wrap; }
 .stat { width:30%; margin-bottom:10px; }
 #beReasonWrap { display:none; }
-#galleryOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; padding:20px; }
-.gallery-image-wrap { display:flex; justify-content:center; align-items:center; height:70vh; }
-#galleryImage { max-width:100%; max-height:100%; }
+#galleryOverlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.95);
+  z-index:9999; padding:20px;
+}
+.gallery-image-wrap {
+  display:flex; justify-content:center;
+  align-items:center; height:70vh;
+}
+#galleryImage {
+  max-width:100%; max-height:100%;
+}
 </style>
 </head>
 
@@ -183,22 +200,19 @@ const client = supabase.createClient(
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg"
 );
 
-let tradesData = [];
-let equityChart = null;
-let index = 0;
+const statusEl = document.getElementById("status");
+const beReasonWrap = document.getElementById("beReasonWrap");
 
-function setToday(){
-  date.value = new Date().toISOString().split("T")[0];
-}
-
-status.onchange = ()=>{
-  beReasonWrap.style.display = status.value === "BE" ? "block" : "none";
+statusEl.onchange = ()=>{
+  beReasonWrap.style.display = statusEl.value === "BE" ? "block" : "none";
 };
 
 form.onsubmit = async e=>{
   e.preventDefault();
 
   statusMsg.innerText = "Saving...";
+
+  const statusVal = document.getElementById("status").value;
 
   const { error } = await client.from("trades").insert([{
     trade_date: date.value,
@@ -208,8 +222,8 @@ form.onsubmit = async e=>{
     direction: direction.value,
     quality: quality.value,
     rule_followed: rule_followed.value,
-    status: status.value,
-    be_reason: status.value === "BE" ? be_reason.value : null,
+    status: statusVal,
+    be_reason: statusVal === "BE" ? be_reason.value : null,
     result_r: Number(points.value || 0),
     pnl: Number(pnl.value || 0),
     image_url: link.value,
@@ -228,152 +242,14 @@ form.onsubmit = async e=>{
   load();
 };
 
-clearBtn.onclick = async ()=>{
-  if(!confirm("Delete all trades?")) return;
-
-  const { error } = await client.from("trades").delete().neq("id", 0);
-
-  if(error){
-    alert("Error: " + error.message);
-    return;
-  }
-
-  load();
-};
-
-chartMode.onchange = draw;
-
-openGalleryBtn.onclick = ()=>{
-  galleryOverlay.style.display = "block";
-  index = 0;
-  showGallery();
-};
-
-closeGalleryBtn.onclick = ()=>galleryOverlay.style.display = "none";
-
-prevGalleryBtn.onclick = ()=>{
-  if(!tradesData.length) return;
-  index = (index - 1 + tradesData.length) % tradesData.length;
-  showGallery();
-};
-
-nextGalleryBtn.onclick = ()=>{
-  if(!tradesData.length) return;
-  index = (index + 1) % tradesData.length;
-  showGallery();
-};
-
-function showGallery(){
-  let withImages = tradesData.filter(t => t.image_url);
-  let t = withImages[index];
-
-  if(!t){
-    galleryImage.src = "";
-    galleryInfo.innerHTML = "No chart images found.";
-    return;
-  }
-
-  galleryImage.src = t.image_url;
-  galleryInfo.innerHTML = `${t.play} | ${t.market} | ${t.status} | ${Number(t.result_r || 0)} pts | $${Number(t.pnl || 0).toFixed(2)}`;
-}
-
-function draw(){
-  if(equityChart) equityChart.destroy();
-
-  let sorted = [...tradesData].sort((a,b)=>new Date(a.trade_date) - new Date(b.trade_date));
-  let labels = [];
-
-  if(chartMode.value === "overall"){
-    let data = [];
-    let eq = 0;
-
-    sorted.forEach(t=>{
-      eq += Number(t.result_r || 0);
-      labels.push(t.trade_date);
-      data.push(eq);
-    });
-
-    equityChart = new Chart(equityChartCtx, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [{
-          label: "Equity Points",
-          data,
-          borderColor: "#62ff9e"
-        }]
-      }
-    });
-
-  } else {
-    let playTotals = {};
-    let datasetsMap = {};
-
-    const plays = ["Espresso","ASR","SR","Anti ASR","Anti SR","Discretion","First Bar Negative","First Bar Positive"];
-
-    plays.forEach(p=>{
-      playTotals[p] = 0;
-      datasetsMap[p] = [];
-    });
-
-    sorted.forEach(t=>{
-      labels.push(t.trade_date);
-
-      plays.forEach(p=>{
-        if(t.play === p){
-          playTotals[p] += Number(t.result_r || 0);
-        }
-        datasetsMap[p].push(playTotals[p]);
-      });
-    });
-
-    equityChart = new Chart(equityChartCtx, {
-      type: "line",
-      data: {
-        labels,
-        datasets: plays.map(p=>({
-          label: p,
-          data: datasetsMap[p],
-          borderColor: p === "Espresso" ? "#62ff9e" : "#ffffff",
-          tension: 0.2
-        }))
-      }
-    });
-  }
+function setToday(){
+  date.value = new Date().toISOString().split("T")[0];
 }
 
 async function load(){
-  const { data, error } = await client
-    .from("trades")
-    .select("*")
-    .order("trade_date", { ascending: true });
-
-  if(error){
-    statusMsg.innerText = "Error loading trades: " + error.message;
-    return;
-  }
-
-  tradesData = data || [];
-  list.innerHTML = "";
-
-  let total = tradesData.length;
-  let wins = tradesData.filter(t=>Number(t.pnl || 0) > 0);
-  let totalPnlValue = tradesData.reduce((a,b)=>a + Number(b.pnl || 0), 0);
-
-  trades.innerText = total;
-  winrate.innerText = (total ? (wins.length / total * 100).toFixed(1) : 0) + "%";
-  totalPnl.innerText = "$" + totalPnlValue.toFixed(2);
-
-  tradesData.forEach(t=>{
-    let li = document.createElement("li");
-    li.innerHTML = `${t.trade_date} | ${t.play} | ${t.market} | ${t.direction} | ${Number(t.result_r || 0)} pts | $${Number(t.pnl || 0).toFixed(2)}`;
-    list.appendChild(li);
-  });
-
-  draw();
+  const { data } = await client.from("trades").select("*");
+  trades.innerText = data.length;
 }
-
-const equityChartCtx = document.getElementById("equityChart");
 
 setToday();
 load();
