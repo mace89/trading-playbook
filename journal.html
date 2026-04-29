@@ -143,8 +143,8 @@ button {
 </select>
 </div>
 
-<label>Result (R)</label>
-<input id="r">
+<label>Result (Points)</label>
+<input id="points">
 
 <label>PnL ($)</label>
 <input id="pnl">
@@ -241,7 +241,7 @@ quality:quality.value,
 rule_followed:rule_followed.value,
 status:status.value,
 be_reason:status.value==="BE"?be_reason.value:null,
-result_r:Number(r.value||0),
+result_points:Number(points.value||0),
 pnl:Number(pnl.value||0),
 image_url:link.value,
 notes:notes.value
@@ -282,7 +282,7 @@ function showGallery(){
 let t=tradesData[index];
 if(!t)return;
 galleryImage.src=t.image_url;
-galleryInfo.innerHTML=`${t.play} | ${t.market} | ${t.status} | $${t.pnl}`;
+galleryInfo.innerHTML=`${t.play} | ${t.market} | ${t.status} | ${Number(t.result_points||0)} pts | $${t.pnl}`;
 }
 
 function draw(){
@@ -294,27 +294,27 @@ let labels=[],data=[],eq=0;
 
 if(chartMode.value==="overall"){
 sorted.forEach(t=>{
-eq+=Number(t.result_r||0);
+eq+=Number(t.result_points||0);
 labels.push(t.trade_date);
 data.push(eq);
 });
 
 equityChart=new Chart(equityChartCtx,{
 type:"line",
-data:{labels,datasets:[{label:"Equity",data,borderColor:"#62ff9e"}]}
+data:{labels,datasets:[{label:"Equity Points",data,borderColor:"#62ff9e"}]}
 });
 }else{
 
-let s=0,m=0;
-let sd=[],md=[];
+let espresso=0,other=0;
+let espressoData=[],otherData=[];
 
 sorted.forEach(t=>{
-if(t.play==="Espresso")s+=Number(t.result_r||0);
-else m+=Number(t.result_r||0);
+if(t.play==="Espresso")espresso+=Number(t.result_points||0);
+else other+=Number(t.result_points||0);
 
 labels.push(t.trade_date);
-sd.push(s);
-md.push(m);
+espressoData.push(espresso);
+otherData.push(other);
 });
 
 equityChart=new Chart(equityChartCtx,{
@@ -322,8 +322,8 @@ type:"line",
 data:{
 labels,
 datasets:[
-{label:"Espresso",data:sd,borderColor:"#62ff9e"},
-{label:"Other",data:md,borderColor:"#fff"}
+{label:"Espresso",data:espressoData,borderColor:"#62ff9e"},
+{label:"Other",data:otherData,borderColor:"#fff"}
 ]}
 });
 }
@@ -345,7 +345,7 @@ totalPnl.innerText="$"+totalPnl.toFixed(2);
 
 data.forEach(t=>{
 let li=document.createElement("li");
-li.innerHTML=`${t.trade_date} | ${t.play} | ${t.market} | ${t.direction} | $${t.pnl}`;
+li.innerHTML=`${t.trade_date} | ${t.play} | ${t.market} | ${t.direction} | ${Number(t.result_points||0)} pts | $${t.pnl}`;
 list.appendChild(li);
 });
 
