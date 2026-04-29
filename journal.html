@@ -146,6 +146,20 @@ button {
 
 <div class="card">
 <h2>Stats</h2>
+
+<label>Stats By Play</label>
+<select id="statsPlay">
+<option value="All">All Plays</option>
+<option>Espresso</option>
+<option>ASR</option>
+<option>SR</option>
+<option>Anti ASR</option>
+<option>Anti SR</option>
+<option>Discretion</option>
+<option>First Bar Negative</option>
+<option>First Bar Positive</option>
+</select>
+
 <div class="stats">
 <div class="stat">Trades: <span id="trades">0</span></div>
 <div class="stat">Winrate: <span id="winrate">0%</span></div>
@@ -209,6 +223,7 @@ let index = 0;
 const statusEl = document.getElementById("status");
 const beReasonWrap = document.getElementById("beReasonWrap");
 const equityChartCtx = document.getElementById("equityChart");
+const statsPlay = document.getElementById("statsPlay");
 
 function setToday(){
   document.getElementById("date").value = new Date().toISOString().split("T")[0];
@@ -217,6 +232,8 @@ function setToday(){
 statusEl.onchange = ()=>{
   beReasonWrap.style.display = statusEl.value === "BE" ? "block" : "none";
 };
+
+statsPlay.onchange = updateStats;
 
 form.onsubmit = async e=>{
   e.preventDefault();
@@ -307,18 +324,28 @@ function showGallery(){
   `;
 }
 
-function updateStats(){
-  let total = tradesData.length;
-  let wins = tradesData.filter(t => Number(t.pnl || 0) > 0);
-  let totalPnlValue = tradesData.reduce((a,b)=>a + Number(b.pnl || 0), 0);
-  let totalPtsValue = tradesData.reduce((a,b)=>a + Number(b.result_r || 0), 0);
+function getStatsData(){
+  if(statsPlay.value === "All"){
+    return tradesData;
+  }
 
-  let grossProfit = tradesData
+  return tradesData.filter(t => t.play === statsPlay.value);
+}
+
+function updateStats(){
+  const statsData = getStatsData();
+
+  let total = statsData.length;
+  let wins = statsData.filter(t => Number(t.pnl || 0) > 0);
+  let totalPnlValue = statsData.reduce((a,b)=>a + Number(b.pnl || 0), 0);
+  let totalPtsValue = statsData.reduce((a,b)=>a + Number(b.result_r || 0), 0);
+
+  let grossProfit = statsData
     .filter(t => Number(t.pnl || 0) > 0)
     .reduce((a,b)=>a + Number(b.pnl || 0), 0);
 
   let grossLoss = Math.abs(
-    tradesData
+    statsData
       .filter(t => Number(t.pnl || 0) < 0)
       .reduce((a,b)=>a + Number(b.pnl || 0), 0)
   );
@@ -330,7 +357,7 @@ function updateStats(){
   let peak = 0;
   let maxDD = 0;
 
-  tradesData.forEach(t=>{
+  statsData.forEach(t=>{
     equity += Number(t.pnl || 0);
     if(equity > peak) peak = equity;
     let dd = peak - equity;
