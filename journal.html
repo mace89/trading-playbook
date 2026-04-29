@@ -37,9 +37,7 @@ button {
   display:flex; justify-content:center;
   align-items:center; height:70vh;
 }
-#galleryImage {
-  max-width:100%; max-height:100%;
-}
+#galleryImage { max-width:100%; max-height:100%; }
 </style>
 </head>
 
@@ -151,7 +149,11 @@ button {
 <div class="stats">
 <div class="stat">Trades: <span id="trades">0</span></div>
 <div class="stat">Winrate: <span id="winrate">0%</span></div>
+<div class="stat">Total Points: <span id="totalPoints">0</span></div>
 <div class="stat">Total PnL: <span id="totalPnl">$0</span></div>
+<div class="stat">Profit Factor: <span id="profitFactor">0</span></div>
+<div class="stat">Max Drawdown: <span id="maxDrawdown">$0</span></div>
+<div class="stat">Expectancy: <span id="expectancy">$0</span></div>
 </div>
 </div>
 
@@ -195,13 +197,22 @@ button {
 </div>
 
 <script>
-const client = supabase.createClient(
-"https://ebdyavzqraejwrvaclfg.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg"
-);
+const SUPABASE_URL = "https://ebdyavzqraejwrvaclfg.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHlhdnpxcmFlandydmFjbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njk3NDQsImV4cCI6MjA5MjU0NTc0NH0.zGUhhBt86s2bWhGz4HlCgljGKWnpHIeH7eobCdFWUTg";
+
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let tradesData = [];
+let equityChart = null;
+let index = 0;
 
 const statusEl = document.getElementById("status");
 const beReasonWrap = document.getElementById("beReasonWrap");
+const equityChartCtx = document.getElementById("equityChart");
+
+function setToday(){
+  document.getElementById("date").value = new Date().toISOString().split("T")[0];
+}
 
 statusEl.onchange = ()=>{
   beReasonWrap.style.display = statusEl.value === "BE" ? "block" : "none";
@@ -242,13 +253,213 @@ form.onsubmit = async e=>{
   load();
 };
 
-function setToday(){
-  date.value = new Date().toISOString().split("T")[0];
+clearBtn.onclick = async ()=>{
+  if(!confirm("Delete all trades?")) return;
+
+  const { error } = await client.from("trades").delete().neq("id", 0);
+
+  if(error){
+    alert("Error: " + error.message);
+    return;
+  }
+
+  load();
+};
+
+chartMode.onchange = draw;
+
+openGalleryBtn.onclick = ()=>{
+  galleryOverlay.style.display = "block";
+  index = 0;
+  showGallery();
+};
+
+closeGalleryBtn.onclick = ()=>galleryOverlay.style.display = "none";
+
+prevGalleryBtn.onclick = ()=>{
+  const withImages = tradesData.filter(t => t.image_url);
+  if(!withImages.length) return;
+  index = (index - 1 + withImages.length) % withImages.length;
+  showGallery();
+};
+
+nextGalleryBtn.onclick = ()=>{
+  const withImages = tradesData.filter(t => t.image_url);
+  if(!withImages.length) return;
+  index = (index + 1) % withImages.length;
+  showGallery();
+};
+
+function showGallery(){
+  const withImages = tradesData.filter(t => t.image_url);
+  let t = withImages[index];
+
+  if(!t){
+    galleryImage.src = "";
+    galleryInfo.innerHTML = "No chart images found.";
+    return;
+  }
+
+  galleryImage.src = t.image_url;
+  galleryInfo.innerHTML = `
+    ${t.trade_date} | ${t.play} | ${t.market} | ${t.direction || ""} | ${t.status} | ${Number(t.result_r || 0)} pts | $${Number(t.pnl || 0).toFixed(2)}
+    ${t.notes ? `<br>Notes: ${t.notes}` : ""}
+  `;
+}
+
+function updateStats(){
+  let total = tradesData.length;
+  let wins = tradesData.filter(t => Number(t.pnl || 0) > 0);
+  let totalPnlValue = tradesData.reduce((a,b)=>a + Number(b.pnl || 0), 0);
+  let totalPtsValue = tradesData.reduce((a,b)=>a + Number(b.result_r || 0), 0);
+
+  let grossProfit = tradesData
+    .filter(t => Number(t.pnl || 0) > 0)
+    .reduce((a,b)=>a + Number(b.pnl || 0), 0);
+
+  let grossLoss = Math.abs(
+    tradesData
+      .filter(t => Number(t.pnl || 0) < 0)
+      .reduce((a,b)=>a + Number(b.pnl || 0), 0)
+  );
+
+  let pf = grossLoss ? grossProfit / grossLoss : (grossProfit > 0 ? Infinity : 0);
+  let expectancyValue = total ? totalPnlValue / total : 0;
+
+  let equity = 0;
+  let peak = 0;
+  let maxDD = 0;
+
+  tradesData.forEach(t=>{
+    equity += Number(t.pnl || 0);
+    if(equity > peak) peak = equity;
+    let dd = peak - equity;
+    if(dd > maxDD) maxDD = dd;
+  });
+
+  trades.innerText = total;
+  winrate.innerText = (total ? (wins.length / total * 100).toFixed(1) : 0) + "%";
+  totalPoints.innerText = totalPtsValue.toFixed(2);
+  totalPnl.innerText = "$" + totalPnlValue.toFixed(2);
+  profitFactor.innerText = pf === Infinity ? "∞" : pf.toFixed(2);
+  maxDrawdown.innerText = "$" + maxDD.toFixed(2);
+  expectancy.innerText = "$" + expectancyValue.toFixed(2);
+}
+
+function updateList(){
+  list.innerHTML = "";
+
+  tradesData.forEach(t=>{
+    let li = document.createElement("li");
+    li.innerHTML = `
+      ${t.trade_date} ${t.entry_time || ""} | ${t.play} | ${t.market} | ${t.direction || ""} | ${t.status} ${t.be_reason ? `(${t.be_reason})` : ""} | Rules: ${t.rule_followed || ""} | ${Number(t.result_r || 0)} pts | $${Number(t.pnl || 0).toFixed(2)}
+      ${t.notes ? `<br><small>Notes: ${t.notes}</small>` : ""}
+    `;
+    list.appendChild(li);
+  });
+}
+
+function draw(){
+  if(equityChart) equityChart.destroy();
+
+  let sorted = [...tradesData].sort((a,b)=>{
+    const da = new Date(`${a.trade_date}T${a.entry_time || "00:00"}`);
+    const db = new Date(`${b.trade_date}T${b.entry_time || "00:00"}`);
+    return da - db;
+  });
+
+  let labels = [];
+
+  if(chartMode.value === "overall"){
+    let data = [];
+    let eq = 0;
+
+    sorted.forEach(t=>{
+      eq += Number(t.result_r || 0);
+      labels.push(`${t.trade_date} ${t.entry_time || ""}`);
+      data.push(eq);
+    });
+
+    equityChart = new Chart(equityChartCtx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Overall Equity Points",
+          data,
+          borderColor: "#62ff9e",
+          backgroundColor: "rgba(98,255,158,0.15)",
+          tension: 0.25
+        }]
+      },
+      options: {
+        plugins: { legend: { labels: { color: "#62ff9e" } } },
+        scales: {
+          x: { ticks: { color:"#62ff9e" }, grid:{ color:"rgba(98,255,158,0.1)" } },
+          y: { ticks: { color:"#62ff9e" }, grid:{ color:"rgba(98,255,158,0.1)" } }
+        }
+      }
+    });
+
+  } else {
+    const plays = ["Espresso","ASR","SR","Anti ASR","Anti SR","Discretion","First Bar Negative","First Bar Positive"];
+    let totals = {};
+    let datasetsMap = {};
+
+    plays.forEach(p=>{
+      totals[p] = 0;
+      datasetsMap[p] = [];
+    });
+
+    sorted.forEach(t=>{
+      labels.push(`${t.trade_date} ${t.entry_time || ""}`);
+
+      plays.forEach(p=>{
+        if(t.play === p){
+          totals[p] += Number(t.result_r || 0);
+        }
+        datasetsMap[p].push(totals[p]);
+      });
+    });
+
+    equityChart = new Chart(equityChartCtx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: plays.map((p, i)=>({
+          label: p,
+          data: datasetsMap[p],
+          borderColor: i === 0 ? "#62ff9e" : "#ffffff",
+          tension: 0.25
+        }))
+      },
+      options: {
+        plugins: { legend: { labels: { color: "#62ff9e" } } },
+        scales: {
+          x: { ticks: { color:"#62ff9e" }, grid:{ color:"rgba(98,255,158,0.1)" } },
+          y: { ticks: { color:"#62ff9e" }, grid:{ color:"rgba(98,255,158,0.1)" } }
+        }
+      }
+    });
+  }
 }
 
 async function load(){
-  const { data } = await client.from("trades").select("*");
-  trades.innerText = data.length;
+  const { data, error } = await client
+    .from("trades")
+    .select("*")
+    .order("trade_date", { ascending: true })
+    .order("entry_time", { ascending: true });
+
+  if(error){
+    statusMsg.innerText = "Error loading trades: " + error.message;
+    return;
+  }
+
+  tradesData = data || [];
+  updateStats();
+  updateList();
+  draw();
 }
 
 setToday();
