@@ -8,17 +8,24 @@
     .nav { padding:20px; border-bottom:1px solid rgba(98,255,158,0.2); text-align:center; }
     .nav a { margin:0 15px; text-decoration:none; color:#62ff9e; font-weight:bold; }
     h1 { text-align:center; margin-top:30px; }
-    .container { max-width:1100px; margin:30px auto; padding:20px; }
-    .card { border:1px solid rgba(98,255,158,0.3); padding:20px; margin-bottom:25px; }
-    button { padding:12px; background:#62ff9e; border:none; color:#030604; font-weight:bold; cursor:pointer; }
-    select {
-      padding:10px; margin:5px 0; background:#000;
-      border:1px solid rgba(98,255,158,0.3); color:#62ff9e;
+
+    .container {
+      max-width:1200px;
+      margin:30px auto;
+      padding:20px;
     }
-    table { width:100%; border-collapse:collapse; margin-top:20px; }
-    th, td { border-bottom:1px solid rgba(98,255,158,0.2); padding:10px; text-align:left; }
-    th { color:#9effc7; }
-    .muted { color:rgba(98,255,158,0.7); }
+
+    .card {
+      border:1px solid rgba(98,255,158,0.3);
+      padding:20px;
+      margin-bottom:25px;
+    }
+
+    iframe {
+      width:100%;
+      height:800px;
+      border:none;
+    }
   </style>
 </head>
 
@@ -27,7 +34,8 @@
 <div class="nav">
   <a href="index.html">HOME</a>
   <a href="journal.html">JOURNAL</a>
-  <a href="calendar.html">ECONOMIC CALENDAR</a>
+  <a href="mindset.html">MINDSET</a>
+  <a href="calendar.html">CALENDAR</a>
 </div>
 
 <h1>ECONOMIC CALENDAR</h1>
@@ -35,138 +43,14 @@
 <div class="container">
 
   <div class="card">
-    <h2>US + Germany News</h2>
-    <p class="muted">Automatically filtered to United States, Germany, USD and EUR events.</p>
+    <h2>US + Germany News Only</h2>
 
-    <label>Days Ahead</label>
-    <select id="daysAhead">
-      <option value="3">Next 3 Days</option>
-      <option value="7" selected>Next 7 Days</option>
-      <option value="14">Next 14 Days</option>
-      <option value="30">Next 30 Days</option>
-    </select>
+    <iframe src="https://sslecal2.forexprostools.com/?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&countries=25,17&importance=1,2,3&features=datepicker,timezone,timeselector&calType=day&timeZone=8&lang=1">
+    </iframe>
 
-    <button id="refreshBtn">Refresh Calendar</button>
-
-    <p id="statusMsg">Ready.</p>
-  </div>
-
-  <div class="card">
-    <h2>Events</h2>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Date / Time</th>
-          <th>Country</th>
-          <th>Currency</th>
-          <th>Event</th>
-          <th>Actual</th>
-          <th>Estimate</th>
-          <th>Previous</th>
-        </tr>
-      </thead>
-      <tbody id="calendarBody"></tbody>
-    </table>
   </div>
 
 </div>
-
-<script>
-const FMP_API_KEY = "c3dSASniUZXB4YcyHbEgTZyHHd27U3dH";
-
-const statusMsg = document.getElementById("statusMsg");
-const calendarBody = document.getElementById("calendarBody");
-const refreshBtn = document.getElementById("refreshBtn");
-const daysAhead = document.getElementById("daysAhead");
-
-function formatDate(date){
-  return date.toISOString().split("T")[0];
-}
-
-function addDays(date, days){
-  const copy = new Date(date);
-  copy.setDate(copy.getDate() + days);
-  return copy;
-}
-
-function safe(value){
-  return value === null || value === undefined || value === "" ? "-" : value;
-}
-
-function isWantedEvent(event){
-  const country = String(event.country || "").toLowerCase();
-  const currency = String(event.currency || "").toLowerCase();
-
-  return (
-    country.includes("united states") ||
-    country.includes("germany") ||
-    currency === "usd" ||
-    currency === "eur"
-  );
-}
-
-async function loadCalendar(){
-  try {
-    statusMsg.innerText = "Loading calendar...";
-
-    const today = new Date();
-    const from = formatDate(today);
-    const to = formatDate(addDays(today, Number(daysAhead.value)));
-
-    const url = `https://financialmodelingprep.com/api/v3/economic_calendar?from=${from}&to=${to}&apikey=${FMP_API_KEY}`;
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    console.log("FMP response:", data);
-
-    if(!Array.isArray(data)){
-      calendarBody.innerHTML = "";
-      statusMsg.innerText = "Error loading calendar. Check your API key or FMP plan access.";
-      return;
-    }
-
-    const filtered = data
-      .filter(isWantedEvent)
-      .sort((a,b)=> new Date(a.date) - new Date(b.date));
-
-    calendarBody.innerHTML = "";
-
-    if(filtered.length === 0){
-      calendarBody.innerHTML = `<tr><td colspan="7">No US or Germany events found for this period.</td></tr>`;
-      statusMsg.innerText = `Loaded ${data.length} total events, but none matched US/Germany.`;
-      return;
-    }
-
-    filtered.forEach(event=>{
-      const row = document.createElement("tr");
-
-      row.innerHTML = `
-        <td>${safe(event.date)}</td>
-        <td>${safe(event.country)}</td>
-        <td>${safe(event.currency)}</td>
-        <td>${safe(event.event)}</td>
-        <td>${safe(event.actual)}</td>
-        <td>${safe(event.estimate)}</td>
-        <td>${safe(event.previous)}</td>
-      `;
-
-      calendarBody.appendChild(row);
-    });
-
-    statusMsg.innerText = `Loaded ${filtered.length} US/Germany events.`;
-
-  } catch(error){
-    statusMsg.innerText = "Error: " + error.message;
-  }
-}
-
-refreshBtn.onclick = loadCalendar;
-daysAhead.onchange = loadCalendar;
-
-loadCalendar();
-</script>
 
 </body>
 </html>
