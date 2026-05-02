@@ -2,30 +2,14 @@
 <html>
 <head>
   <title>Economic Calendar</title>
-
   <style>
     body { margin:0; font-family:Arial; background:#030604; color:#62ff9e; }
     .nav { padding:20px; border-bottom:1px solid rgba(98,255,158,0.2); text-align:center; }
     .nav a { margin:0 15px; text-decoration:none; color:#62ff9e; font-weight:bold; }
     h1 { text-align:center; margin-top:30px; }
-
-    .container {
-      max-width:1200px;
-      margin:30px auto;
-      padding:20px;
-    }
-
-    .card {
-      border:1px solid rgba(98,255,158,0.3);
-      padding:20px;
-      margin-bottom:25px;
-    }
-
-    iframe {
-      width:100%;
-      height:800px;
-      border:none;
-    }
+    .container { max-width:1200px; margin:30px auto; padding:20px; }
+    .card { border:1px solid rgba(98,255,158,0.3); padding:20px; }
+    iframe { width:100%; height:850px; border:none; background:#000; }
   </style>
 </head>
 
@@ -41,15 +25,9 @@
 <h1>ECONOMIC CALENDAR</h1>
 
 <div class="container">
-
   <div class="card">
-    <h2>US + Germany News Only</h2>
-
-    <iframe src="https://sslecal2.forexprostools.com/?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&countries=25,17&importance=1,2,3&features=datepicker,timezone,timeselector&calType=day&timeZone=8&lang=1">
-    </iframe>
-
+    <iframe src="https://www.fxstreet.com/economic-calendar/widget"></iframe>
   </div>
-
 </div>
 
 </body>
