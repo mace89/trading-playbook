@@ -1,78 +1,108 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Control Panel</title>
+  <title>Anti-Spiral Control Panel</title>
 </head>
 
-<body style="background:black; color:#00ff88; font-family:Arial; padding:20px;">
+<body style="background:black; color:#00ff88; font-family:Arial; padding:30px; font-size:20px; line-height:1.6;">
 
-<h1>ANTI-SPIRAL CONTROL PANEL</h1>
+<h1 style="font-size:42px; text-align:center;">
+⚠️ ANTI-SPIRAL CONTROL PANEL
+</h1>
 
-<p>Only trade if ALL boxes are ticked.</p>
-
-<div>
-  <label><input type="checkbox"> Exact setup</label><br>
-  <label><input type="checkbox"> Calm mind</label><br>
-  <label><input type="checkbox"> Not revenge trading</label><br>
-  <label><input type="checkbox"> Fixed risk</label><br>
-</div>
-
-<br>
-
-<button onclick="checkTrade()">Check Trade</button>
-
-<p id="result"></p>
+<p style="font-size:24px; text-align:center; color:white;">
+You are not trying to make money.<br>
+You are trying to STOP LOSING CONTROL.
+</p>
 
 <hr>
 
-<button onclick="startTimer()">Start 10 min cooldown</button>
-<p id="timer">10:00</p>
+<h2 style="font-size:30px;">🧠 CORE TRUTH (READ THIS EVERY TIME)</h2>
+
+<p style="color:white;">
+You do NOT blow accounts because your strategy is bad.<br><br>
+
+You blow accounts because:
+</p>
+
+<ul>
+  <li>You cannot tolerate being wrong</li>
+  <li>You try to “fix” losses immediately</li>
+  <li>You trade emotional urgency instead of your model</li>
+</ul>
+
+<p style="color:#ff4444; font-size:24px;">
+👉 The moment you try to “get it back”, you lose control.
+</p>
 
 <hr>
 
-<button onclick="stop()">I broke rules</button>
+<h2 style="font-size:30px;">🚨 YOUR REAL PROBLEM</h2>
 
-<div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; color:red; font-size:40px; text-align:center; padding-top:20%;">
-STOP TRADING
-</div>
+<p style="color:white;">
+It is not discipline in general.<br>
+It is <b>short emotional bursts</b> where logic disappears.
+</p>
 
-<script>
-function checkTrade(){
-  const boxes = document.querySelectorAll('input');
-  let ok = true;
-  boxes.forEach(b => { if(!b.checked) ok = false });
+<p style="color:#ff4444; font-size:24px;">
+These 10–30 minute spirals are where accounts die.
+</p>
 
-  document.getElementById('result').innerText =
-    ok ? "OK TO TRADE" : "DO NOT TRADE";
-}
+<hr>
 
-let t = 600;
-let interval;
+<h2 style="font-size:30px;">🛑 NEW RULE (NON-NEGOTIABLE)</h2>
 
-function startTimer(){
-  clearInterval(interval);
-  t = 600;
+<ul>
+  <li>One mistake = STOP trading</li>
+  <li>One emotional urge = step away</li>
+  <li>No “making it back today” behaviour</li>
+</ul>
 
-  interval = setInterval(() => {
-    let m = Math.floor(t/60);
-    let s = t % 60;
+<p style="color:white;">
+You are allowed to miss trades.<br>
+You are NOT allowed to spiral.
+</p>
 
-    document.getElementById("timer").innerText =
-      m + ":" + (s < 10 ? "0" : "") + s;
+<hr>
 
-    if(t <= 0){
-      clearInterval(interval);
-      document.getElementById("timer").innerText = "READY";
-    }
+<h2 style="font-size:30px;">🧘 RESET COMMAND</h2>
 
-    t--;
-  }, 1000);
-}
+<p style="font-size:22px;">
+When you feel urgency:
+</p>
 
-function stop(){
-  document.getElementById("overlay").style.display = "block";
-}
-</script>
+<ol>
+  <li>Stand up</li>
+  <li>Stop looking at charts</li>
+  <li>Say: <b>“This is where I usually blow accounts.”</b></li>
+  <li>Wait 10 minutes</li>
+</ol>
+
+<hr>
+
+<h2 style="font-size:30px;">🎯 WHAT SUCCESS ACTUALLY IS</h2>
+
+<ul>
+  <li>Following your rules</li>
+  <li>Taking ONLY valid setups</li>
+  <li>Stopping when conditions break</li>
+</ul>
+
+<p style="font-size:24px; color:white;">
+Profit is NOT the goal.<br>
+Control is the goal.
+</p>
+
+<hr>
+
+<h2 style="font-size:30px; text-align:center;">
+REMEMBER
+</h2>
+
+<p style="font-size:26px; text-align:center; color:#00ff88;">
+You don’t need a better system.<br>
+You need to stop losing control in short bursts.
+</p>
 
 </body>
 </html>
