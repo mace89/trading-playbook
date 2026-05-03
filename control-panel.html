@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Control Panel</title>
+</head>
+
+<body style="background:black; color:#00ff88; font-family:Arial; padding:20px;">
+
+<h1>ANTI-SPIRAL CONTROL PANEL</h1>
+
+<p>Only trade if ALL boxes are ticked.</p>
+
+<div>
+  <label><input type="checkbox"> Exact setup</label><br>
+  <label><input type="checkbox"> Calm mind</label><br>
+  <label><input type="checkbox"> Not revenge trading</label><br>
+  <label><input type="checkbox"> Fixed risk</label><br>
+</div>
+
+<br>
+
+<button onclick="checkTrade()">Check Trade</button>
+
+<p id="result"></p>
+
+<hr>
+
+<button onclick="startTimer()">Start 10 min cooldown</button>
+<p id="timer">10:00</p>
+
+<hr>
+
+<button onclick="stop()">I broke rules</button>
+
+<div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; color:red; font-size:40px; text-align:center; padding-top:20%;">
+STOP TRADING
+</div>
+
+<script>
+function checkTrade(){
+  const boxes = document.querySelectorAll('input');
+  let ok = true;
+  boxes.forEach(b => { if(!b.checked) ok = false });
+
+  document.getElementById('result').innerText =
+    ok ? "OK TO TRADE" : "DO NOT TRADE";
+}
+
+let t = 600;
+let interval;
+
+function startTimer(){
+  clearInterval(interval);
+  t = 600;
+
+  interval = setInterval(() => {
+    let m = Math.floor(t/60);
+    let s = t % 60;
+
+    document.getElementById("timer").innerText =
+      m + ":" + (s < 10 ? "0" : "") + s;
+
+    if(t <= 0){
+      clearInterval(interval);
+      document.getElementById("timer").innerText = "READY";
+    }
+
+    t--;
+  }, 1000);
+}
+
+function stop(){
+  document.getElementById("overlay").style.display = "block";
+}
+</script>
+
+</body>
+</html>
