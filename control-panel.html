@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trading Control Panel</title>
+</head>
+
+<body style="background:black; color:#00ff88; font-family:Arial; padding:20px;">
+
+  <h1>⚠️ ANTI-SPIRAL CONTROL PANEL</h1>
+
+  <p style="color:white;">
+    You are not here to make money.<br>
+    You are here to execute correctly.
+  </p>
+
+  <hr>
+
+  <h2>✅ PRE-TRADE CHECK</h2>
+
+  <div id="checklist">
+    <label><input type="checkbox"> Exact setup</label><br>
+    <label><input type="checkbox"> Calm (no urgency)</label><br>
+    <label><input type="checkbox"> Not revenge trading</label><br>
+    <label><input type="checkbox"> Fixed risk</label><br>
+  </div>
+
+  <br>
+
+  <button onclick="checkTrade()">Confirm Trade</button>
+
+  <p id="check-result"></p>
+
+  <hr>
+
+  <h2>⏱ LOCKOUT TIMER</h2>
+
+  <button onclick="startTimer()">Start 10 Min Timer</button>
+
+  <p id="timer">10:00</p>
+
+  <hr>
+
+  <h2>🚫 EMERGENCY STOP</h2>
+
+  <button onclick="triggerStop()">I BROKE RULES</button>
+
+  <div id="overlay" style="
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    color:red;
+    font-size:40px;
+    text-align:center;
+    padding-top:20%;
+  ">
+    🚫 STOP TRADING 🚫<br><br>
+    Close your platform NOW
+  </div>
+
+  <script>
+    function checkTrade() {
+      const checkboxes = document.querySelectorAll('#checklist input');
+      let allChecked = true;
+
+      checkboxes.forEach(box => {
+        if (!box.checked) allChecked = false;
+      });
+
+      const result = document.getElementById("check-result");
+
+      if (allChecked) {
+        result.style.color = "lime";
+        result.innerText = "✔ Trade allowed";
+      } else {
+        result.style.color = "red";
+        result.innerText = "❌ NOT allowed";
+      }
+    }
+
+    let time = 600;
+    let timerInterval;
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      time = 600;
+
+      timerInterval = setInterval(() => {
+        let minutes = Math.floor(time / 60);
+        let seconds = time % 60;
+
+        document.getElementById("timer").innerText =
+          minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+
+        if (time <= 0) {
+          clearInterval(timerInterval);
+          document.getElementById("timer").innerText = "✔ You may trade";
+        }
+
+        time--;
+      }, 1000);
+    }
+
+    function triggerStop() {
+      document.getElementById("overlay").style.display = "block";
+    }
+  </script>
+
+</body>
+</html>
