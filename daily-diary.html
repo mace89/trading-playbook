@@ -139,13 +139,9 @@ function createCard(entry, index, type) {
 
   let content;
 
-  if (entry.link.includes('tradingview.com')) {
-    content = document.createElement('iframe');
-    content.src = entry.link;
-  } else {
-    content = document.createElement('img');
-    content.src = entry.link;
-  }
+  // Always treat as image (TradingView snapshot links)
+  const content = document.createElement('img');
+  content.src = entry.link;
 
   const textarea = document.createElement('textarea');
   textarea.value = entry.notes;
