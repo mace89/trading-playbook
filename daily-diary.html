@@ -19,59 +19,33 @@ h1, h2 {
   text-shadow: 0 0 10px #00ff88;
 }
 
+.date-picker {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+input[type="date"] {
+  background: #000;
+  color: #00ff88;
+  border: 1px solid #00ff88;
+  padding: 8px;
+}
+
 .section {
-  margin-bottom: 50px;
+  margin-bottom: 40px;
 }
 
 .input-box {
-  border: 1px dashed #00ff88;
-  padding: 20px;
   text-align: center;
   margin-bottom: 20px;
-  border-radius: 8px;
-  background: rgba(0,255,136,0.05);
 }
 
 input[type="text"] {
-  width: 80%;
+  width: 70%;
   padding: 8px;
   background: #000;
   border: 1px solid #00ff88;
   color: #00ff88;
-  border-radius: 5px;
-}
-
-.gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-.card {
-  background: #020202;
-  border: 1px solid #00ff88;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,255,136,0.2);
-}
-
-.card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 5px;
-  border: 1px solid #00ff88;
-}
-
-textarea {
-  width: 100%;
-  margin-top: 10px;
-  background: #000;
-  color: #00ff88;
-  border: 1px solid #00ff88;
-  border-radius: 5px;
-  padding: 8px;
-  font-family: 'Courier New', monospace;
 }
 
 button {
@@ -80,7 +54,6 @@ button {
   border: 1px solid #00ff88;
   background: transparent;
   color: #00ff88;
-  border-radius: 5px;
   cursor: pointer;
 }
 
@@ -89,15 +62,29 @@ button:hover {
   color: #000;
 }
 
-button.delete {
-  border-color: #ff0033;
-  color: #ff0033;
+.entry {
+  margin-bottom: 40px;
+  border: 1px solid #00ff88;
+  padding: 10px;
 }
 
-button.delete:hover {
-  background: #ff0033;
-  color: #000;
+.entry img {
+  width: 100%;
+  max-height: 600px;
+  object-fit: contain;
+  border: 1px solid #00ff88;
 }
+
+textarea {
+  width: 100%;
+  height: 120px;
+  margin-top: 10px;
+  background: #000;
+  color: #00ff88;
+  border: 1px solid #00ff88;
+  padding: 10px;
+}
+
 </style>
 </head>
 
@@ -105,116 +92,106 @@ button.delete:hover {
 
 <h1>Daily Diary</h1>
 
+<div class="date-picker">
+  <h2>Select Date</h2>
+  <input type="date" id="datePicker">
+</div>
+
 <div class="section">
-  <h2>EU Session (DAX)</h2>
+  <h2>EU Session</h2>
   <div class="input-box">
-    <p>Paste TradingView Image Link</p>
-    <input type="text" id="euLink" placeholder="https://s3.tradingview.com/...">
+    <input type="text" id="euLink" placeholder="Paste TradingView image link">
     <br>
     <button onclick="addEntry('eu')">Add Trade</button>
   </div>
-  <div id="euGallery" class="gallery"></div>
+  <div id="euEntries"></div>
 </div>
 
 <div class="section">
   <h2>US Session</h2>
   <div class="input-box">
-    <p>Paste TradingView Image Link</p>
-    <input type="text" id="usLink" placeholder="https://s3.tradingview.com/...">
+    <input type="text" id="usLink" placeholder="Paste TradingView image link">
     <br>
     <button onclick="addEntry('us')">Add Trade</button>
   </div>
-  <div id="usGallery" class="gallery"></div>
+  <div id="usEntries"></div>
 </div>
 
 <script>
-function saveData(key, data) {
-  localStorage.setItem(key, JSON.stringify(data));
+let currentDate = '';
+
+function saveData(data) {
+  localStorage.setItem('diary', JSON.stringify(data));
 }
 
-function loadData(key) {
-  return JSON.parse(localStorage.getItem(key)) || [];
-}
-
-function createCard(entry, index, type) {
-  const card = document.createElement('div');
-  card.className = 'card';
-
-  const img = document.createElement('img');
-  img.src = entry.link;
-
-  const textarea = document.createElement('textarea');
-  textarea.value = entry.notes;
-  textarea.placeholder = 'Write trade notes...';
-
-  textarea.addEventListener('change', () => {
-    const data = loadData(type);
-    data[index].notes = textarea.value;
-    saveData(type, data);
-  });
-
-  const openBtn = document.createElement('button');
-  openBtn.textContent = 'Open Image';
-  openBtn.onclick = () => {
-    window.open(entry.link, '_blank');
-  };
-
-  const delBtn = document.createElement('button');
-  delBtn.textContent = 'Delete';
-  delBtn.className = 'delete';
-
-  delBtn.onclick = () => {
-    let data = loadData(type);
-    data.splice(index, 1);
-    saveData(type, data);
-    renderGallery(type);
-  };
-
-  card.appendChild(img);
-  card.appendChild(textarea);
-  card.appendChild(openBtn);
-  card.appendChild(delBtn);
-
-  return card;
-}
-
-function renderGallery(type) {
-  const gallery = document.getElementById(type + 'Gallery');
-  gallery.innerHTML = '';
-
-  const data = loadData(type);
-
-  data.forEach((entry, index) => {
-    gallery.appendChild(createCard(entry, index, type));
-  });
+function loadData() {
+  return JSON.parse(localStorage.getItem('diary')) || {};
 }
 
 function addEntry(type) {
   const input = document.getElementById(type + 'Link');
-
   const link = input.value.trim();
 
-  if (!link) {
-    alert('Paste a TradingView image link');
-    return;
-  }
+  if (!link) return alert('Paste link');
+  if (!currentDate) return alert('Select a date first');
 
-  if (!link.includes('tradingview.com') && !link.includes('s3.tradingview')) {
-    alert('Invalid TradingView link');
-    return;
-  }
+  const data = loadData();
 
-  const data = loadData(type);
-  data.push({ link: link, notes: '' });
-  saveData(type, data);
+  if (!data[currentDate]) data[currentDate] = { eu: [], us: [] };
 
+  data[currentDate][type].push({ link: link, notes: '' });
+
+  saveData(data);
   input.value = '';
-  renderGallery(type);
+  render();
 }
 
-// Load saved trades on page load
-renderGallery('eu');
-renderGallery('us');
+function render() {
+  const data = loadData();
+  const day = data[currentDate] || { eu: [], us: [] };
+
+  ['eu', 'us'].forEach(type => {
+    const container = document.getElementById(type + 'Entries');
+    container.innerHTML = '';
+
+    day[type].forEach((entry, index) => {
+      const div = document.createElement('div');
+      div.className = 'entry';
+
+      const img = document.createElement('img');
+      img.src = entry.link;
+
+      const textarea = document.createElement('textarea');
+      textarea.value = entry.notes;
+
+      textarea.onchange = () => {
+        const data = loadData();
+        data[currentDate][type][index].notes = textarea.value;
+        saveData(data);
+      };
+
+      const del = document.createElement('button');
+      del.textContent = 'Delete';
+      del.onclick = () => {
+        const data = loadData();
+        data[currentDate][type].splice(index, 1);
+        saveData(data);
+        render();
+      };
+
+      div.appendChild(img);
+      div.appendChild(textarea);
+      div.appendChild(del);
+      container.appendChild(div);
+    });
+  });
+}
+
+document.getElementById('datePicker').addEventListener('change', function() {
+  currentDate = this.value;
+  render();
+});
+
 </script>
 
 </body>
