@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daily Diary</title>
+
 <style>
 body {
   font-family: 'Courier New', monospace;
@@ -54,9 +55,10 @@ input[type="text"] {
   box-shadow: 0 0 10px rgba(0,255,136,0.2);
 }
 
-.card iframe, .card img {
+.card img {
   width: 100%;
   height: 200px;
+  object-fit: cover;
   border-radius: 5px;
   border: 1px solid #00ff88;
 }
@@ -98,6 +100,7 @@ button.delete:hover {
 }
 </style>
 </head>
+
 <body>
 
 <h1>Daily Diary</h1>
@@ -105,8 +108,8 @@ button.delete:hover {
 <div class="section">
   <h2>EU Session (DAX)</h2>
   <div class="input-box">
-    <p>Paste TradingView Chart Link</p>
-    <input type="text" id="euLink" placeholder="Paste TradingView link here">
+    <p>Paste TradingView Image Link</p>
+    <input type="text" id="euLink" placeholder="https://s3.tradingview.com/...">
     <br>
     <button onclick="addEntry('eu')">Add Trade</button>
   </div>
@@ -116,8 +119,8 @@ button.delete:hover {
 <div class="section">
   <h2>US Session</h2>
   <div class="input-box">
-    <p>Paste TradingView Chart Link</p>
-    <input type="text" id="usLink" placeholder="Paste TradingView link here">
+    <p>Paste TradingView Image Link</p>
+    <input type="text" id="usLink" placeholder="https://s3.tradingview.com/...">
     <br>
     <button onclick="addEntry('us')">Add Trade</button>
   </div>
@@ -137,11 +140,8 @@ function createCard(entry, index, type) {
   const card = document.createElement('div');
   card.className = 'card';
 
-  let content;
-
-  // Always treat as image (TradingView snapshot links)
-  const content = document.createElement('img');
-  content.src = entry.link;
+  const img = document.createElement('img');
+  img.src = entry.link;
 
   const textarea = document.createElement('textarea');
   textarea.value = entry.notes;
@@ -152,6 +152,12 @@ function createCard(entry, index, type) {
     data[index].notes = textarea.value;
     saveData(type, data);
   });
+
+  const openBtn = document.createElement('button');
+  openBtn.textContent = 'Open Image';
+  openBtn.onclick = () => {
+    window.open(entry.link, '_blank');
+  };
 
   const delBtn = document.createElement('button');
   delBtn.textContent = 'Delete';
@@ -164,8 +170,9 @@ function createCard(entry, index, type) {
     renderGallery(type);
   };
 
-  card.appendChild(content);
+  card.appendChild(img);
   card.appendChild(textarea);
+  card.appendChild(openBtn);
   card.appendChild(delBtn);
 
   return card;
@@ -174,6 +181,7 @@ function createCard(entry, index, type) {
 function renderGallery(type) {
   const gallery = document.getElementById(type + 'Gallery');
   gallery.innerHTML = '';
+
   const data = loadData(type);
 
   data.forEach((entry, index) => {
@@ -183,9 +191,18 @@ function renderGallery(type) {
 
 function addEntry(type) {
   const input = document.getElementById(type + 'Link');
+
   const link = input.value.trim();
 
-  if (!link) return;
+  if (!link) {
+    alert('Paste a TradingView image link');
+    return;
+  }
+
+  if (!link.includes('tradingview.com') && !link.includes('s3.tradingview')) {
+    alert('Invalid TradingView link');
+    return;
+  }
 
   const data = loadData(type);
   data.push({ link: link, notes: '' });
@@ -195,6 +212,7 @@ function addEntry(type) {
   renderGallery(type);
 }
 
+// Load saved trades on page load
 renderGallery('eu');
 renderGallery('us');
 </script>
